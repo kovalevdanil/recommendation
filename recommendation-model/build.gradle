@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+}
+
+group 'ua.kovalev'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    archiveName "${project.name}.jar"
+}

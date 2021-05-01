@@ -1,0 +1,6 @@
+rootProject.name = 'recommendation'
+
+include 'recommendation-api'
+include 'recommendation-model'
+include 'recommendation-service'
+
