@@ -15,6 +15,9 @@ repositories {
 
 subprojects {
 
+    group "ua.kovalev.recommendation"
+//    group "ua.kovalev"
+
     dependencies {
         testCompile group: 'junit', name: 'junit', version: '4.12'
 
