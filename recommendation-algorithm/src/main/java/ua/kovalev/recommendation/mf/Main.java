@@ -33,7 +33,8 @@ public class Main {
             EALSConfig.LATENT_INIT_DEVIATION, 0.01,
             EALSConfig.LATENT_INIT_MEAN, 0.01d,
             EALSConfig.POPULARITY_SIGNIFICANCE, 1d,
-            EALSConfig.NEW_ITEM_WEIGHT, 1e-4
+            EALSConfig.NEW_ITEM_WEIGHT, 1e-4,
+            EALSConfig.TOP_K, 100
     );
 
     public static void main(String[] args) throws IOException {
@@ -75,13 +76,12 @@ public class Main {
 //            System.out.printf("Prediction for user %d and item %d is %f%n", randomUserId, i, model.predict(randomUserId, i));
 //        }
 
-
         startTimeMs = System.currentTimeMillis();
+        List<Integer> items = model.getRecommendedItems(1, false);
+        System.out.println("Recommendations generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
 
-        for (int i = 0; i < RECOMMEND_EXAMPLE_COUNT; i++){
-            List<Integer> recommendedItems = model.getRecommendedItems(i, false);
-        }
-        System.out.println("Made " + RECOMMEND_EXAMPLE_COUNT + " recommendations in " + (System.currentTimeMillis() - startTimeMs) + " ms");
+        System.out.println(items);
+
     }
 
     public static SparseRealMatrix buildTrainMatrix(Dataset dataset){

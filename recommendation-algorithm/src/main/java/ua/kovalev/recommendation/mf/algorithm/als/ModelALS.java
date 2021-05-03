@@ -218,6 +218,7 @@ public class ModelALS extends Recommender {
         List<Integer> items = Stream
                 .generate(() -> rnd.nextInt((int)itemCount))
                 .limit(itemPoolSize)
+                .distinct()
                 .collect(Collectors.toList());
 
         Map<Integer, Integer> itemInteractionCount = new HashMap<>();
