@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class SparseRealVector implements SparseVector{
+public class SparseRealVector implements SparseVector, Iterable<Map.Entry<Integer, Double>>{
     private Map<Integer, Double> dataMap = new HashMap<>();
     private final int size;
 
@@ -83,5 +83,10 @@ public class SparseRealVector implements SparseVector{
     private void validateIndex(int i){
         if (i < 0 || i >= size)
             throw new RuntimeException();
+    }
+
+    @Override
+    public Iterator<Map.Entry<Integer, Double>> iterator() {
+        return sparseIterator();
     }
 }

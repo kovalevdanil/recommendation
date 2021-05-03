@@ -4,14 +4,23 @@ package ua.kovalev.recommendation.mf.algorithm.als;
 import ua.kovalev.recommendation.mf.algorithm.Recommender;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Rating;
+import ua.kovalev.recommendation.mf.datastructure.Pair;
 import ua.kovalev.recommendation.mf.datastructure.matrix.DenseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
+import ua.kovalev.recommendation.mf.datastructure.vector.SparseRealVector;
 import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class ModelALS extends Recommender {
 
@@ -185,6 +194,52 @@ public class ModelALS extends Recommender {
             updateUser(u);
             updateItem(i);
         }
+    }
+
+    @Override
+    public List<Integer> getRecommendedItems(int u, boolean excludeInteracted) {
+        Random rnd = new Random();
+
+        int userPoolSize = 1000, topPoolSize = 100, itemPoolSize = 2000;
+        // generate random pool of user ids of size userPoolSize
+        List<Integer> userPool = Stream
+                .generate(() -> rnd.nextInt((int) userCount))
+                .limit(userPoolSize)
+                .distinct()
+                // calculate cosine similarity
+                .map(id -> new Pair<>(id, VectorUtils.cosine(U.getRow(u), U.getRow(id))))
+                // sort by similarity
+                .sorted(Comparator.comparing(p -> p.second))
+                .limit(topPoolSize)
+                .map(pair -> pair.first)
+                .collect(Collectors.toList());
+        userPool.remove(Integer.valueOf(u));
+
+        List<Integer> items = Stream
+                .generate(() -> rnd.nextInt((int)itemCount))
+                .limit(itemPoolSize)
+                .collect(Collectors.toList());
+
+        Map<Integer, Integer> itemInteractionCount = new HashMap<>();
+        for (Integer item: items){
+            itemInteractionCount.put(item, 0);
+        }
+
+        for (int userId : userPool){
+            SparseRealVector row = trainMatrix.getRowRef(userId);
+
+            for (Map.Entry<Integer, Double> entry : row){
+                int item = entry.getKey();
+                itemInteractionCount.computeIfPresent(item, (k, v) -> v + 1);
+            }
+        }
+
+        return items.stream()
+                .map(item -> new Pair<>(item, itemInteractionCount.get(item)))
+                .sorted(Comparator.comparing(p -> p.second))
+                .limit(topK)
+                .map(p -> p.first)
+                .collect(Collectors.toList());
     }
 
     public void updateUser(int u){

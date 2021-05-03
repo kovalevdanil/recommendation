@@ -40,4 +40,6 @@ public abstract class Recommender {
      * Update the model with a new observation.
      */
     public abstract void updateModel(int u, int i);
+
+    public abstract List<Integer> getRecommendedItems(int u, boolean excludeInteracted);
 }

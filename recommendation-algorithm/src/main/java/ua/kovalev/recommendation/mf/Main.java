@@ -14,6 +14,7 @@ import ua.kovalev.recommendation.mf.reader.RatingReader;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -22,6 +23,8 @@ public class Main {
     private static final int EXAMPLES_COUNT = 10;
 
     private static final int RATING_COUNT = 1_000_000;
+
+    private static final int RECOMMEND_EXAMPLE_COUNT = 1000;
 
     private static final Map<String, Object> config = Map.of(
             EALSConfig.FACTORS, 32,
@@ -66,11 +69,19 @@ public class Main {
 //            System.out.printf("Prediction for user %d and item %d is %f%n", testRating.getUserId(), testRating.getItemId(), model.predict(testRating.getUserId(), testRating.getItemId()));
 //        }
 
-        int randomUserId = new Random().nextInt(data.getUserCount());
+//        int randomUserId = new Random().nextInt(data.getUserCount());
+//
+//        for (int i = 0; i < data.getItemCount(); i += 5){
+//            System.out.printf("Prediction for user %d and item %d is %f%n", randomUserId, i, model.predict(randomUserId, i));
+//        }
 
-        for (int i = 0; i < data.getItemCount(); i += 5){
-            System.out.printf("Prediction for user %d and item %d is %f%n", randomUserId, i, model.predict(randomUserId, i));
+
+        startTimeMs = System.currentTimeMillis();
+
+        for (int i = 0; i < RECOMMEND_EXAMPLE_COUNT; i++){
+            List<Integer> recommendedItems = model.getRecommendedItems(i, false);
         }
+        System.out.println("Made " + RECOMMEND_EXAMPLE_COUNT + " recommendations in " + (System.currentTimeMillis() - startTimeMs) + " ms");
     }
 
     public static SparseRealMatrix buildTrainMatrix(Dataset dataset){
