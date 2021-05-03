@@ -21,6 +21,7 @@ public class ModelALS extends Recommender {
     private final double lambda;
     private final int factors;
     private final int maxIteration;
+    private final int maxIterationsOnline;
 
     private final double latentInitMean;
     private final double latentInitDeviation;
@@ -56,6 +57,7 @@ public class ModelALS extends Recommender {
         this.latentInitMean = latentInitMean;
         this.latentInitDeviation = latentInitDeviation;
         this.w0 = w0;
+        this.maxIterationsOnline = 1;
 
         initWeightMatrix();
         initLatentMatrices();
@@ -72,6 +74,7 @@ public class ModelALS extends Recommender {
         this.latentInitDeviation = (double) config.getOrDefault(EALSConfig.LATENT_INIT_DEVIATION, 0.01);
         this.latentInitMean = (double) config.getOrDefault(EALSConfig.LATENT_INIT_MEAN, 0.01);
         this.w0 = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 1e-4);
+        this.maxIterationsOnline = (int) config.getOrDefault(EALSConfig.ONLINE_ITERATIONS, 1);
 
         double alpha = (double) config.getOrDefault(EALSConfig.POPULARITY_SIGNIFICANCE, 0.4);
 
@@ -178,7 +181,6 @@ public class ModelALS extends Recommender {
             updateItemCache(i);
         }
 
-        int maxIterationsOnline = 1;
         for (int j = 0; j < maxIterationsOnline; j++){
             updateUser(u);
             updateItem(i);

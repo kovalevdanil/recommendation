@@ -21,17 +21,21 @@ public class Main {
 
     private static final int EXAMPLES_COUNT = 10;
 
-    private static final int RATING_COUNT = 3_000_000;
+    private static final int RATING_COUNT = 1_000_000;
 
     private static final Map<String, Object> config = Map.of(
             EALSConfig.FACTORS, 32,
             EALSConfig.OFFLINE_ITERATIONS, 10,
-            EALSConfig.REGULARIZATION_PARAMETER, 0.01
+            EALSConfig.REGULARIZATION_PARAMETER, 0.01,
+            EALSConfig.LATENT_INIT_DEVIATION, 0.01,
+            EALSConfig.LATENT_INIT_MEAN, 0d,
+            EALSConfig.POPULARITY_SIGNIFICANCE, 0.5,
+            EALSConfig.NEW_ITEM_WEIGHT, 1e-4
     );
 
     public static void main(String[] args) throws IOException {
 
-        DatasetFilter activeUsersFilter = new ActiveUsersDatasetFilter(15);
+        DatasetFilter activeUsersFilter = new ActiveUsersDatasetFilter(3);
         DatasetFilter shrinkIdsFilter = new ShrinkUsersDatasetFilter();
 
         // read input data and perform filtering
