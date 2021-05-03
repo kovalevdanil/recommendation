@@ -3,6 +3,7 @@ package ua.kovalev.recommendation.mf;
 import ua.kovalev.recommendation.mf.algorithm.als.ModelALS;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Dataset;
+import ua.kovalev.recommendation.mf.data.DatasetConstants;
 import ua.kovalev.recommendation.mf.data.Rating;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.filter.ActiveUsersDatasetFilter;
@@ -34,7 +35,7 @@ public class Main {
         DatasetFilter shrinkIdsFilter = new ShrinkUsersDatasetFilter();
 
         // read input data and perform filtering
-        RatingReader reader = new NetflixRatingReader("netflix.txt", Arrays.asList(activeUsersFilter, shrinkIdsFilter));
+        RatingReader reader = new NetflixRatingReader(DatasetConstants.NETLFIX_DATASET, Arrays.asList(activeUsersFilter, shrinkIdsFilter));
 
         long startTimeMs = System.currentTimeMillis();
         Dataset data = reader.read(RATING_COUNT);
