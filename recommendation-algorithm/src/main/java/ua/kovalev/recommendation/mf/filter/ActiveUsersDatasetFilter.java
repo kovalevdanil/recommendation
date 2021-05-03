@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class ActiveUsersDatasetFilter implements DatasetFilter{
 
-    private int minInteractionsNumber;
+    private final int minInteractionsNumber;
 
     public ActiveUsersDatasetFilter(int minInteractionsNumber){
         this.minInteractionsNumber = minInteractionsNumber;

@@ -2,6 +2,7 @@ package ua.kovalev.recommendation.mf.algorithm.als;
 
 
 import ua.kovalev.recommendation.mf.algorithm.Recommender;
+import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Rating;
 import ua.kovalev.recommendation.mf.datastructure.matrix.DenseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
@@ -10,19 +11,19 @@ import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
 import java.util.List;
+import java.util.Map;
 
 public class ModelALS extends Recommender {
 
     /**
      * Regularization parameter
      */
-    private double lambda;
-    private int factors;
-    private int maxIteration;
-    private int maxIterationsOnline = 1;
+    private final double lambda;
+    private final int factors;
+    private final int maxIteration;
 
-    private double latentInitMean;
-    private double latentInitDeviation;
+    private final double latentInitMean;
+    private final double latentInitDeviation;
 
     private DenseRealMatrix U;
     private DenseRealMatrix V;
@@ -30,7 +31,7 @@ public class ModelALS extends Recommender {
     private SparseRealMatrix W;
 
     private double[] C;
-    private double w0;
+    private final double w0;
 
     /**
      * Caches
@@ -43,7 +44,7 @@ public class ModelALS extends Recommender {
     private double[] wItems;
     private double[] wUsers;
 
-    private double newInteractionWeight = 0.1;
+    private final double newInteractionWeight = 0.1;
 
     public ModelALS(SparseRealMatrix trainMatrix, List<Rating> ratings, int topK, int threadNum,
                     int maxIteration, int factors, double lambda, double latentInitMean, double latentInitDeviation,
@@ -56,6 +57,31 @@ public class ModelALS extends Recommender {
         this.latentInitDeviation = latentInitDeviation;
         this.w0 = w0;
 
+        initWeightMatrix();
+        initLatentMatrices();
+        initPopularityVector(alpha, w0);
+        initCache();
+    }
+
+    public ModelALS(SparseRealMatrix trainMatrix, List<Rating> ratings, Map<String, Object> config){
+        super(trainMatrix, ratings, (int)config.getOrDefault(EALSConfig.TOP_K, 10), (int) config.getOrDefault(EALSConfig.THREAD_NUMBER, 1));
+
+        this.maxIteration = (int)config.getOrDefault(EALSConfig.OFFLINE_ITERATIONS, 10);
+        this.factors = (int) config.getOrDefault(EALSConfig.FACTORS, 16);
+        this.lambda = (double) config.getOrDefault(EALSConfig.REGULARIZATION_PARAMETER, 0.01);
+        this.latentInitDeviation = (double) config.getOrDefault(EALSConfig.LATENT_INIT_DEVIATION, 0.01);
+        this.latentInitMean = (double) config.getOrDefault(EALSConfig.LATENT_INIT_MEAN, 0.01);
+        this.w0 = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 1e-4);
+
+        double alpha = (double) config.getOrDefault(EALSConfig.POPULARITY_SIGNIFICANCE, 0.4);
+
+        initWeightMatrix();
+        initLatentMatrices();
+        initPopularityVector(alpha, w0);
+        initCache();
+    }
+
+    private void initWeightMatrix(){
         this.W = new SparseRealMatrix(trainMatrix.getRowCount(), trainMatrix.getColumnCount());
 
         for (int u = 0; u < userCount; u++){
@@ -63,17 +89,18 @@ public class ModelALS extends Recommender {
                 W.setEntry(u, i, 1);
             }
         }
+    }
 
+    private void initLatentMatrices(){
         U = new DenseRealMatrix((int) userCount, factors);
         V = new DenseRealMatrix((int) itemCount, factors);
 
         U.init(latentInitMean, latentInitDeviation);
         V.init(latentInitMean, latentInitDeviation);
+    }
 
+    private void initPopularityVector(double alpha, double w0){
         C = createPopularityVector(alpha, w0);
-//        C = new double[(int) itemCount];
-
-        initCache();
     }
 
     private void initCache(){
@@ -137,7 +164,7 @@ public class ModelALS extends Recommender {
                 updateItem(i);
             }
 
-            System.out.printf("Iteration #%d [%dl ms]%n", iteration + 1, System.currentTimeMillis() - start);
+            System.out.printf("Iteration #%d, loss %f [%dl ms]%n", iteration + 1, loss(), System.currentTimeMillis() - start);
         }
     }
 
@@ -151,6 +178,7 @@ public class ModelALS extends Recommender {
             updateItemCache(i);
         }
 
+        int maxIterationsOnline = 1;
         for (int j = 0; j < maxIterationsOnline; j++){
             updateUser(u);
             updateItem(i);
