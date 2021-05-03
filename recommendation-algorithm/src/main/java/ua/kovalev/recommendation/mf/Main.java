@@ -28,8 +28,8 @@ public class Main {
             EALSConfig.OFFLINE_ITERATIONS, 10,
             EALSConfig.REGULARIZATION_PARAMETER, 0.01,
             EALSConfig.LATENT_INIT_DEVIATION, 0.01,
-            EALSConfig.LATENT_INIT_MEAN, 0d,
-            EALSConfig.POPULARITY_SIGNIFICANCE, 0.5,
+            EALSConfig.LATENT_INIT_MEAN, 0.01d,
+            EALSConfig.POPULARITY_SIGNIFICANCE, 1d,
             EALSConfig.NEW_ITEM_WEIGHT, 1e-4
     );
 
@@ -52,18 +52,24 @@ public class Main {
         SparseRealMatrix trainMatrix = buildTrainMatrix(data);
         System.out.println("Train Matrix is built in " + (System.currentTimeMillis() - startTimeMs) + " ms");
 
-        ModelALS model = new ModelALS(trainMatrix, data.getRatings(), config);
+        ModelALS model = new ModelALS(trainMatrix, config);
 
         model.buildModel();
 
-        for (int i = 0; i < EXAMPLES_COUNT; i++){
-            Rating testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+//        for (int i = 0; i < EXAMPLES_COUNT; i++){
+//            Rating testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+//
+//            while (data.getRatings().contains(testRating)){
+//                testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+//            }
+//
+//            System.out.printf("Prediction for user %d and item %d is %f%n", testRating.getUserId(), testRating.getItemId(), model.predict(testRating.getUserId(), testRating.getItemId()));
+//        }
 
-            while (data.getRatings().contains(testRating)){
-                testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
-            }
+        int randomUserId = new Random().nextInt(data.getUserCount());
 
-            System.out.printf("Prediction for user %d and item %d is %f%n", testRating.getUserId(), testRating.getItemId(), model.predict(testRating.getUserId(), testRating.getItemId()));
+        for (int i = 0; i < data.getItemCount(); i += 5){
+            System.out.printf("Prediction for user %d and item %d is %f%n", randomUserId, i, model.predict(randomUserId, i));
         }
     }
 

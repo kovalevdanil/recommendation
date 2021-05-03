@@ -8,7 +8,6 @@ import java.util.List;
 
 public abstract class Recommender {
     protected SparseRealMatrix trainMatrix;
-    protected List<Rating> ratings;
 
     protected int threadNumber;
 
@@ -18,9 +17,8 @@ public abstract class Recommender {
     protected long itemCount;
 
 
-    public Recommender(SparseRealMatrix trainMatrix, List<Rating> ratings, int topK, int threadNumber){
+    public Recommender(SparseRealMatrix trainMatrix,  int topK, int threadNumber){
         this.trainMatrix = trainMatrix;
-        this.ratings = ratings;
         this.threadNumber = threadNumber;
         this.topK = topK;
 

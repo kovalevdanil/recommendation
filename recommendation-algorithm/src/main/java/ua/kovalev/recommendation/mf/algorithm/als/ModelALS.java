@@ -47,10 +47,10 @@ public class ModelALS extends Recommender {
 
     private final double newInteractionWeight = 0.1;
 
-    public ModelALS(SparseRealMatrix trainMatrix, List<Rating> ratings, int topK, int threadNum,
+    public ModelALS(SparseRealMatrix trainMatrix, int topK, int threadNum,
                     int maxIteration, int factors, double lambda, double latentInitMean, double latentInitDeviation,
                     double alpha, double w0){
-        super(trainMatrix, ratings, topK, threadNum);
+        super(trainMatrix,topK, threadNum);
         this.maxIteration = maxIteration;
         this.factors = factors;
         this.lambda = lambda;
@@ -65,8 +65,8 @@ public class ModelALS extends Recommender {
         initCache();
     }
 
-    public ModelALS(SparseRealMatrix trainMatrix, List<Rating> ratings, Map<String, Object> config){
-        super(trainMatrix, ratings, (int)config.getOrDefault(EALSConfig.TOP_K, 10), (int) config.getOrDefault(EALSConfig.THREAD_NUMBER, 1));
+    public ModelALS(SparseRealMatrix trainMatrix, Map<String, Object> config){
+        super(trainMatrix, (int)config.getOrDefault(EALSConfig.TOP_K, 10), (int) config.getOrDefault(EALSConfig.THREAD_NUMBER, 1));
 
         this.maxIteration = (int)config.getOrDefault(EALSConfig.OFFLINE_ITERATIONS, 10);
         this.factors = (int) config.getOrDefault(EALSConfig.FACTORS, 16);
