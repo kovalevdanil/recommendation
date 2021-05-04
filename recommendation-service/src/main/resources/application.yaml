@@ -1,2 +1,36 @@
 server:
   port: 8000
+
+spring:
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  liquibase:
+    enabled: true
+    liquibase-schema: liquibase
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+model:
+  regularization-parameter: 0.01
+  factors: 32
+  offline-iterations: 5
+  online-iterations: 1
+  latent-init-mean: 0.01
+  latent-init-deviation: 0.01
+  popularity-significance: 0.4
+  new-item-weight: 0.5
+  thread-number: 1
+  top-k: 10
+
+  initializer:
+    load-netflix: true
+    user-interaction-threshold: 10
+    load-item-count: 1000000
+    shrink-users: true
+    tables:
+      user-interaction: user_item
+      user-vector: user_vectors
+      item-vector: item_vectors
