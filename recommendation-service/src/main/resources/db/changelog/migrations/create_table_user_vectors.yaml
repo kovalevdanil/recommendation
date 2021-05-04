@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4
+      author: dkovalev
+      changes:
+        - createTable:
+            tableName: user_vectors
+            columns:
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    foreignKey: true
+                    foreignKeyName: user_vector_user_fk
+                    referencedTableName: users
+                    referencesColumnNames: id
+              - column:
+                  name: vector
+                  type: BLOB
+                  constraints:
+                    notNull: true

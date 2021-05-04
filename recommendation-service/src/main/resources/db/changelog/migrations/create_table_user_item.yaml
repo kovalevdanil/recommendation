@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: dkovalev
+      changes:
+        - createTable:
+            tableName: user_item
+            columns:
+              - column:
+                  type: INT
+                  name: user_id
+                  constraints:
+                    notNull: true
+              - column:
+                  type: INT
+                  name: item_id
+                  constraints:
+                    notNull: true

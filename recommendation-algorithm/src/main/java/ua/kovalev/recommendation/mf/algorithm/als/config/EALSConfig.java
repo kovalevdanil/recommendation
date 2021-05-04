@@ -21,7 +21,6 @@ public final class EALSConfig {
 
     public static final String NEW_ITEM_WEIGHT = "NEW_ITEM_WEIGHT";
 
-
     public static final String THREAD_NUMBER = "THREAD_NUMBER";
 
     public static final String TOP_K = "TOP_K";
