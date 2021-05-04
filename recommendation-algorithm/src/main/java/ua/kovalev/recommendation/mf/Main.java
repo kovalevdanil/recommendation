@@ -1,6 +1,6 @@
 package ua.kovalev.recommendation.mf;
 
-import ua.kovalev.recommendation.mf.algorithm.als.ModelALS;
+import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Dataset;
 import ua.kovalev.recommendation.mf.data.DatasetConstants;
@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 public class Main {
 
@@ -28,11 +27,11 @@ public class Main {
 
     private static final Map<String, Object> config = Map.of(
             EALSConfig.FACTORS, 32,
-            EALSConfig.OFFLINE_ITERATIONS, 10,
-            EALSConfig.REGULARIZATION_PARAMETER, 0.01,
-            EALSConfig.LATENT_INIT_DEVIATION, 0.01,
+            EALSConfig.OFFLINE_ITERATIONS, 5,
+            EALSConfig.REGULARIZATION_PARAMETER, 3d,
+            EALSConfig.LATENT_INIT_DEVIATION, 0.5,
             EALSConfig.LATENT_INIT_MEAN, 0.01d,
-            EALSConfig.POPULARITY_SIGNIFICANCE, 1d,
+            EALSConfig.POPULARITY_SIGNIFICANCE, 0.5d,
             EALSConfig.NEW_ITEM_WEIGHT, 1e-4,
             EALSConfig.TOP_K, 100
     );
@@ -56,9 +55,33 @@ public class Main {
         SparseRealMatrix trainMatrix = buildTrainMatrix(data);
         System.out.println("Train Matrix is built in " + (System.currentTimeMillis() - startTimeMs) + " ms");
 
-        ModelALS model = new ModelALS(trainMatrix, config);
+        EALSModel model = new EALSModel(trainMatrix, config);
 
         model.buildModel();
+
+        double avgPredict = 0;
+        double min = 1, max = 0;
+
+        for (int i = 0; i < trainMatrix.getRowCount(); i++){
+            for (int j = 0; j < trainMatrix.getColumnCount(); j++){
+                double currentPredict = model.predict(i, j);
+                avgPredict += currentPredict;
+
+                if (currentPredict > max){
+                    max = currentPredict;
+                }
+
+                if (currentPredict < min){
+                    min = currentPredict;
+                }
+            }
+        }
+
+        avgPredict /= trainMatrix.getRowCount() * trainMatrix.getColumnCount();
+        System.out.println("Average prediction after " + config.get(EALSConfig.OFFLINE_ITERATIONS) + " iterations is " + avgPredict);
+        System.out.println("Min prediction is " + min);
+        System.out.println("Max prediction is " + max);
+
 
 //        for (int i = 0; i < EXAMPLES_COUNT; i++){
 //            Rating testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
@@ -79,9 +102,14 @@ public class Main {
         startTimeMs = System.currentTimeMillis();
         List<Integer> items = model.getRecommendedItems(1, false);
         System.out.println("Recommendations generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
-
         System.out.println(items);
 
+        EALSModel secondModel = new EALSModel(model.getTrainMatrix(), model.getU(), model.getV(), config);
+
+        startTimeMs = System.currentTimeMillis();
+        List<Integer> items2 = secondModel.getRecommendedItems(1, false);
+        System.out.println("Recommendations in produced model generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
+        System.out.println(items);
     }
 
     public static SparseRealMatrix buildTrainMatrix(Dataset dataset){
