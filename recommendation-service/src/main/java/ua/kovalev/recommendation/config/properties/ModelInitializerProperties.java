@@ -9,6 +9,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 public class ModelInitializerProperties {
 
+    private ModelSources source = ModelSources.NETFLIX;
+
+    private Boolean saveAfterBuild = false;
+
+    private Boolean saveAfterUpdate = false;
+
     /**
      * if train is specified, load only userInteraction matrix and train model
      */

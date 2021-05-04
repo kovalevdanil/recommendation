@@ -14,9 +14,10 @@ spring:
       ddl-auto: none
 
 model:
+  source: NETFLIX
   regularization-parameter: 0.01
   factors: 32
-  offline-iterations: 5
+  offline-iterations: 1
   online-iterations: 1
   latent-init-mean: 0.01
   latent-init-deviation: 0.01
@@ -34,3 +35,5 @@ model:
       user-interaction: user_item
       user-vector: user_vectors
       item-vector: item_vectors
+    save-after-build: false
+    save-after-update: false
