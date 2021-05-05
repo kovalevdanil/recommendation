@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.config.properties.ModelProperties;
@@ -14,6 +17,7 @@ import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.model.loader.DatabaseModelLoader;
 import ua.kovalev.recommendation.model.loader.ModelLoader;
 import ua.kovalev.recommendation.model.loader.NetflixModelLoader;
+import ua.kovalev.recommendation.service.ModelService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +27,7 @@ import java.util.Map;
 public class ModelConfiguration {
 
     @Autowired(required = false)
-    JdbcTemplate jdbcTemplate;
+    ModelService modelService;
 
     @Autowired
     ModelInitializerProperties modelInitProps;
@@ -53,14 +57,18 @@ public class ModelConfiguration {
     @Bean
     public EALSModel model(){
         ModelLoader loader = modelLoader();
+        log.info("Using model loader {}", loader.getClass().getSimpleName());
 
-        log.info("Loading model...");
-        EALSModel model = loader.load();
-        log.info("Model was loaded...");
+        return loader.load();
+    }
 
-        model.buildModel();
-
-        return model;
+    @EventListener(ContextRefreshedEvent.class)
+    public void handleRefreshedContext(){
+        if (modelInitProps.getTrain()){
+            log.info("Model build");
+            EALSModel model = model();
+            model.buildModel();
+        }
     }
 
     @Bean
@@ -72,7 +80,7 @@ public class ModelConfiguration {
         if (ModelSources.NETFLIX.equals(source)){
             loader = new NetflixModelLoader(modelInitProps, modelConfig());
         } else if (ModelSources.DATABASE.equals(source)){
-            loader = new DatabaseModelLoader(jdbcTemplate, modelInitProps, modelConfig());
+            loader = new DatabaseModelLoader(modelInitProps, modelConfig(), modelService);
         } else {
             throw new RuntimeException("it's not supposed to happen");
         }

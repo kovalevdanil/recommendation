@@ -367,6 +367,14 @@ public class EALSModel extends Recommender {
         }
     }
 
+    public int addUser(){
+        return 0;
+    }
+
+    public int addItem(){
+        return 0;
+    }
+
     private void updateItemCache(int i){
         for (int f = 0; f < factors; f++){
             for (int k = 0; k <= f; k++){
