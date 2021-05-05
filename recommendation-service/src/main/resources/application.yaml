@@ -26,14 +26,25 @@ model:
   top-k: 10
 
   initializer:
-    source: NETFLIX
+    source: DATABASE
     user-interaction-threshold: 0
     load-item-count: 10000
     shrink-users: true
-    train: true
+    train: false
     tables:
       user-interaction: user_item
       user-vector: user_vectors
       item-vector: item_vectors
-    save-after-build: true
-    save-after-update: true
+    save-after-build: false
+    save-after-update: false
+
+kafka:
+  topic:
+    event-topic: recommendation-event
+  consumer:
+    group-id: recommendation-service-group
+    client-id: recommendation-client
+    bootstrap-server: localhost:9092
+    commit-interval: 5
+    poll-interval: 10
+    session-timeout: 30000

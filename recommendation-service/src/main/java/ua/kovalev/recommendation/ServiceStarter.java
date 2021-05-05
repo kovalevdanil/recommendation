@@ -6,10 +6,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.config.properties.ModelProperties;
+import ua.kovalev.recommendation.kafka.config.KafkaProperties;
 
 @SpringBootApplication
 @EnableAspectJAutoProxy
-@EnableConfigurationProperties({ModelInitializerProperties.class, ModelProperties.class})
+@EnableConfigurationProperties({ModelInitializerProperties.class, ModelProperties.class, KafkaProperties.class})
 public class ServiceStarter {
 
 	public static void main(String[] args) {
