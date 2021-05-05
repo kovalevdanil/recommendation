@@ -10,6 +10,7 @@ import ua.kovalev.recommendation.mf.datastructure.matrix.DenseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
 import ua.kovalev.recommendation.mf.datastructure.vector.SparseRealVector;
+import ua.kovalev.recommendation.mf.util.ArrayUtils;
 import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
@@ -154,9 +155,16 @@ public class EALSModel extends Recommender {
         wUsers = new double[(int) userCount];
         wItems = new double[(int) itemCount];
 
-        SU = MatrixUtils.multiplyDense(U.transpose(), U);
-        SV = new DenseRealMatrix(factors, factors);
+        initSU();
+        initSV();
+    }
 
+    public void initSU(){
+        SU = MatrixUtils.multiplyDense(U.transpose(), U);
+    }
+
+    public void initSV(){
+        SV = new DenseRealMatrix(factors, factors);
         for (int f = 0; f < factors; f++){
             for (int k = 0; k <= f; k++){
                 double val = 0;
@@ -211,17 +219,20 @@ public class EALSModel extends Recommender {
 
     @Override
     public void updateModel(int u, int i) {
-        trainMatrix.setEntry(u, i, 1);
-        W.setEntry(u, i, newInteractionWeight);
+        if (trainMatrix.getEntry(u, i) != 0){
 
-        if (C[i] == 0){
-            C[i] = w0 / itemCount;
-            updateItemCache(i);
-        }
+            trainMatrix.setEntry(u, i, 1);
+            W.setEntry(u, i, newInteractionWeight);
 
-        for (int j = 0; j < maxIterationsOnline; j++){
-            updateUser(u);
-            updateItem(i);
+            if (C[i] == 0){
+                C[i] = w0 / itemCount;
+                updateItemCache(i);
+            }
+
+            for (int j = 0; j < maxIterationsOnline; j++){
+                updateUser(u);
+                updateItem(i);
+            }
         }
     }
 
@@ -367,12 +378,44 @@ public class EALSModel extends Recommender {
         }
     }
 
-    public int addUser(){
-        return 0;
+    public synchronized int addUser(){
+
+        U.addRowInit(latentInitMean, latentInitDeviation);
+        W.addRow();
+        trainMatrix.addRow();
+
+        predictionUsersCache = ArrayUtils.copyAndIncrementSize(predictionUsersCache);
+        ratingUsers = ArrayUtils.copyAndIncrementSize(ratingUsers);
+
+        wUsers = ArrayUtils.copyAndIncrementSize(wUsers);
+
+        double[] addedLatentVector = U.getRowRef((int)userCount);
+        for (int i = 0; i < factors; i++){
+            for (int j = 0; j < factors; j++){
+                SU.add(i, j, addedLatentVector[i] * addedLatentVector[j]);
+            }
+        }
+
+        userCount++;
+
+        return (int) userCount - 1;
     }
 
-    public int addItem(){
-        return 0;
+    public synchronized int addItem(){
+        V.addRowInit(latentInitMean, latentInitDeviation);
+        W.addColumn();
+        trainMatrix.addColumn();
+
+        predictionItemsCache = ArrayUtils.copyAndIncrementSize(predictionItemsCache);
+        ratingItems = ArrayUtils.copyAndIncrementSize(ratingItems);
+        wItems = ArrayUtils.copyAndIncrementSize(wItems);
+
+        C = ArrayUtils.copyAndIncrementSize(C);
+        C[(int) itemCount] = w0 / (itemCount + 1);
+        itemCount++;
+
+        initSV();
+        return (int) itemCount - 1;
     }
 
     private void updateItemCache(int i){
@@ -384,7 +427,6 @@ public class EALSModel extends Recommender {
             }
         }
     }
-
 
     private double loss(){
         double L = lambda * (MatrixUtils.squaredSum(U) + MatrixUtils.squaredSum(V));

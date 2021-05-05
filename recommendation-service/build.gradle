@@ -28,6 +28,9 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

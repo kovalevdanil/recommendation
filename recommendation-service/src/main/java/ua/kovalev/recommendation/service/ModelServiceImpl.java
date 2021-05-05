@@ -2,6 +2,7 @@ package ua.kovalev.recommendation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
@@ -34,10 +35,21 @@ public class ModelServiceImpl implements ModelService {
     @Value("${model.initializer.tables.user-interaction}")
     private String userInteractionTable;
 
+    @Value("${mapping.user-table:users}")
+    private String userTable;
+
+    @Value("${mapping.item-table:items}")
+    private String itemTable;
+
     @Autowired
     public ModelServiceImpl(JdbcTemplate template, ModelInitializerProperties props) {
         this.template = template;
+    }
 
+    @Override
+    @Cacheable(cacheNames = "recommendations", key = "#u")
+    public List<Integer> getRecommendations(EALSModel model, Integer u, boolean excludeInteracted) {
+        return model.getRecommendedItems(u, excludeInteracted);
     }
 
     @Override
@@ -50,6 +62,17 @@ public class ModelServiceImpl implements ModelService {
     public boolean updateItemVector(EALSModel model, int i) {
         double[] vector = model.getV().getRowRef(i);
         return updateItemVector(i, vector);
+    }
+
+
+    @Override
+    public boolean saveUserVector(EALSModel model, int u) {
+        return insertUserVector(u, model.getU().getRowRef(u));
+    }
+
+    @Override
+    public boolean saveItemVector(EALSModel model, int i) {
+        return insertItemVector(i, model.getV().getRowRef(i));
     }
 
     @Override
@@ -70,6 +93,8 @@ public class ModelServiceImpl implements ModelService {
         clearTable(userVectorTable);
         clearTable(itemVectorTable);
         clearTable(userInteractionTable);
+        clearTable(itemTable);
+        clearTable(userTable);
 
         saveInteractionMatrix(model.getTrainMatrix());
         saveUserVectors(model.getU());
@@ -125,13 +150,33 @@ public class ModelServiceImpl implements ModelService {
     }
 
     public int getMaxUserId(){
-        Integer max = template.queryForObject(String.format("select max(user_id) from %s", userVectorTable), Integer.class);
-        return (max == null ? 0 : max);
+        Integer maxUserTable = template.queryForObject(String.format("select max(model_id) from %s", userTable), Integer.class);
+        Integer maxInteractionTable = template.queryForObject(String.format("select max(user_id) from %s", userInteractionTable), Integer.class);
+
+        if (maxUserTable == null){
+            return maxInteractionTable == null ? 0 : maxInteractionTable;
+        }
+
+        if (maxInteractionTable == null){
+            return maxUserTable;
+        }
+
+        return Math.max(maxUserTable, maxInteractionTable);
     }
 
     public int getMaxItemId(){
-        Integer max =  template.queryForObject(String.format("select max(item_id) from %s", itemVectorTable), Integer.class);
-        return (max == null ? 0 : max);
+        Integer maxItemTable = template.queryForObject(String.format("select max(model_id) from %s", itemTable), Integer.class);
+        Integer maxInteractionTable = template.queryForObject(String.format("select max(item_id) from %s", userInteractionTable), Integer.class);
+
+        if (maxItemTable == null){
+            return maxInteractionTable == null ? 0 : maxInteractionTable;
+        }
+
+        if (maxInteractionTable == null){
+            return maxItemTable;
+        }
+
+        return Math.max(maxItemTable, maxInteractionTable);
     }
 
     public boolean saveInteraction(Integer u, Integer i){
@@ -233,15 +278,8 @@ public class ModelServiceImpl implements ModelService {
     private Dataset loadDataset() {
         List<Rating> interactions = loadRatings();
 
-        int userCount = interactions.stream()
-                .max(Comparator.comparing(Rating::getUserId))
-                .orElse(new Rating(0, 0))
-                .getUserId() + 1;
-
-        int itemCount = interactions.stream()
-                .max(Comparator.comparing(Rating::getItemId))
-                .orElse(new Rating(0, 0))
-                .getItemId() + 1;
+        int userCount = getMaxUserId() + 1;
+        int itemCount = getMaxItemId() + 1;
 
         return new Dataset(interactions, userCount, itemCount);
     }

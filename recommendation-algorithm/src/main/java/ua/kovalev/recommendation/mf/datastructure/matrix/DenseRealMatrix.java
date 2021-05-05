@@ -2,7 +2,10 @@ package ua.kovalev.recommendation.mf.datastructure.matrix;
 
 
 import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
+import ua.kovalev.recommendation.mf.util.ArrayUtils;
 import ua.kovalev.recommendation.mf.util.MathUtils;
+
+import java.util.Arrays;
 
 public class DenseRealMatrix implements RealMatrix{
 
@@ -134,4 +137,55 @@ public class DenseRealMatrix implements RealMatrix{
         return result;
     }
 
+    public void addRow(double[] row){
+        if (row.length != colCount){
+            throw new RuntimeException();
+        }
+        double[][] newData = new double[rowCount + 1][];
+        if (rowCount >= 0) {
+            System.arraycopy(data, 0, newData, 0, rowCount);
+        }
+        newData[rowCount] = row;
+
+        rowCount++;
+        data = newData;
+    }
+
+    public void addColumn(double[] col){
+        if (col.length != rowCount){
+            throw new RuntimeException();
+        }
+
+        for (int i = 0; i < rowCount; i++) {
+            data[i] = ArrayUtils.copyAndIncrementSize(data[i]);
+            data[i][colCount] = col[i];
+        }
+
+        colCount++;
+    }
+
+    public void addColumn(){
+        for (int i = 0; i < rowCount; i++) {
+            data[i] = ArrayUtils.copyAndIncrementSize(data[i]);
+        }
+        colCount++;
+    }
+
+    public void addRow(){
+        addRow(new double[colCount]);
+    }
+
+    public void addRowInit(double mean, double sigma){
+        double[] row = new double[colCount];
+        for (int i = 0; i < colCount; i++){
+            row[i] = MathUtils.gaussian(0, mean, sigma);
+        }
+        addRow(row);
+    }
+
+    public void add(int i, int j, double val){
+        validatePosition(i, j);
+
+        data[i][j] += val;
+    }
 }

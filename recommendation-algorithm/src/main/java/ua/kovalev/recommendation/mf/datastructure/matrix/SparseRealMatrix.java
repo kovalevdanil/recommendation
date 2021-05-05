@@ -5,8 +5,8 @@ import ua.kovalev.recommendation.mf.datastructure.vector.SparseRealVector;
 
 public class SparseRealMatrix implements SparseMatrix{
 
-    private final int rowCount;
-    private final int colCount;
+    private int rowCount;
+    private int colCount;
     private SparseRealVector[] rows;
     private SparseRealVector[] cols;
 
@@ -98,10 +98,34 @@ public class SparseRealMatrix implements SparseMatrix{
 
     public int getEntryCount(){
         int totalSize = 0;
-        for (int i = 0; i < rows.length; i++){
-            totalSize += rows[i].getEntryCount();
+        for (SparseRealVector row : rows) {
+            totalSize += row.getEntryCount();
         }
         return totalSize;
+    }
+
+    public void addRow(){
+        addRow(new SparseRealVector(colCount));
+    }
+
+    public void addRow(SparseRealVector row){
+        SparseRealVector[] newRows = new SparseRealVector[rowCount + 1];
+
+        if (rowCount >= 0) {
+            System.arraycopy(rows, 0, newRows, 0, rowCount);
+        }
+        newRows[rowCount] = row;
+
+        for (int i = 0; i < colCount; i++){
+            cols[i].incrementSize();
+        }
+
+        for (var entry : row){
+            cols[entry.getKey()].setEntry(rowCount, entry.getValue());
+        }
+
+        rowCount++;
+        rows = newRows;
     }
 
     private void validatePosition(int row, int col){
@@ -111,11 +135,27 @@ public class SparseRealMatrix implements SparseMatrix{
 
     private void validateRow(int row){
         if (row < 0 || row >= rowCount)
-            throw new RuntimeException();
+            throw new RuntimeException("Row " + row + " out of bounds [0, " + (rowCount - 1) + "]");
     }
 
     private void validateColumn(int col){
         if (col < 0 || col >= colCount)
-            throw new RuntimeException();
+            throw new RuntimeException("Column " + col + " out of bounds [0, " + (colCount - 1) + "]");
+    }
+
+    public void addColumn() {
+        SparseRealVector[] newCols = new SparseRealVector[colCount + 1];
+
+        if (colCount >= 0){
+            System.arraycopy(cols, 0, newCols, 0, colCount);
+        }
+        newCols[colCount] = new SparseRealVector(rowCount);
+
+        for (int i = 0; i < rowCount; i++){
+            rows[i].incrementSize();
+        }
+
+        cols = newCols;
+        colCount++;
     }
 }

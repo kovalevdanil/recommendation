@@ -64,7 +64,7 @@ public class NetflixRatingReader implements RatingReader{
             }
         }
 
-        Dataset dataset = new Dataset(ratings, userCount, itemCount);
+        Dataset dataset = new Dataset(ratings, userCount + 1, itemCount + 1);
 
         if (isFilterNeeded()){
             filter(dataset);
