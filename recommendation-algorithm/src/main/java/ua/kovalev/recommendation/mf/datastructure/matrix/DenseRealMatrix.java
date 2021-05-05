@@ -89,6 +89,11 @@ public class DenseRealMatrix implements RealMatrix{
         }
     }
 
+    public double[] getRowRef(int u){
+        validateRow(u);
+        return data[u];
+    }
+
     public DenseRealVector getColumn(int col){
         validateColumn(col);
 

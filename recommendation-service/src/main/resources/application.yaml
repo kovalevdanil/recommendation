@@ -16,9 +16,9 @@ spring:
 model:
   regularization-parameter: 0.01
   factors: 32
-  offline-iterations: 5
+  offline-iterations: 2
   online-iterations: 1
-  latent-init-mean: 0.01
+  latent-init-mean: 0
   latent-init-deviation: 0.01
   popularity-significance: 0.4
   new-item-weight: 0.5
@@ -26,11 +26,14 @@ model:
   top-k: 10
 
   initializer:
-    load-netflix: true
-    user-interaction-threshold: 10
-    load-item-count: 1000000
+    source: NETFLIX
+    user-interaction-threshold: 0
+    load-item-count: 10000
     shrink-users: true
+    train: true
     tables:
       user-interaction: user_item
       user-vector: user_vectors
       item-vector: item_vectors
+    save-after-build: true
+    save-after-update: true

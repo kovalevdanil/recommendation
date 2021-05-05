@@ -16,6 +16,6 @@ databaseChangeLog:
                     referencesColumnNames: id
               - column:
                   name: vector
-                  type: BLOB
+                  type: bytea
                   constraints:
                     notNull: true
