@@ -9,8 +9,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 public class ModelInitializerProperties {
 
+    /**
+     * Where to look for model params
+     */
     private ModelSources source = ModelSources.NETFLIX;
 
+    /**
+     * If persisting in database is needed after build (will overwrite existing data including mappings)
+     */
     private Boolean saveAfterBuild = false;
 
     private Boolean saveAfterUpdate = false;

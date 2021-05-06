@@ -40,7 +40,7 @@ public class RecommendationRestEndpoint implements RestEndpoint{
         Integer modelId = userMappingService.getModelId(outerId)
                 .orElseThrow(() -> new RuntimeException("Unable to find model id for user"));
 
-        List<Integer> items = model.getRecommendedItems(modelId, false);
+        List<Integer> items = modelService.getRecommendations(model, modelId, false);
 
         return ResponseEntity.ok(Response.builder()
                 .user(request.getUser())
