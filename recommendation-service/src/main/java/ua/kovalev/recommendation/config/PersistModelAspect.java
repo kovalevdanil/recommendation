@@ -1,7 +1,9 @@
 package ua.kovalev.recommendation.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
@@ -72,9 +74,35 @@ public class PersistModelAspect {
         return joinPoint.proceed();
     }
 
+    @AfterReturning(value = "addUserOperation()", returning = "u")
+    public Object afterUserAdd(JoinPoint joinPoint, Integer u){
+        log.info("Persisting new user {} vector", u);
+
+        EALSModel model = (EALSModel) joinPoint.getThis();
+        modelService.saveUserVector(model, u);
+
+        return u;
+    }
+
+    @AfterReturning(value = "addItemOperation()", returning = "i")
+    public Object afterItemAdd(JoinPoint joinPoint, Integer i){
+        log.info("Persisting new item {} vector", i);
+
+        EALSModel model = (EALSModel) joinPoint.getThis();
+        modelService.saveItemVector(model, i);
+
+        return i;
+    }
+
     @Pointcut("execution(void ua.kovalev.recommendation.mf.algorithm.als.EALSModel.buildModel(..))")
     private void buildModelOperation(){}
 
     @Pointcut("execution(void ua.kovalev.recommendation.mf.algorithm.als.EALSModel.updateModel(..))")
     private void updateModelOperation(){}
+
+    @Pointcut("execution(int ua.kovalev.recommendation.mf.algorithm.als.EALSModel.addUser(..))")
+    private void addUserOperation(){}
+
+    @Pointcut("execution(int ua.kovalev.recommendation.mf.algorithm.als.EALSModel.addItem(..))")
+    private void addItemOperation(){}
 }

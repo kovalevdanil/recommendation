@@ -7,7 +7,12 @@ databaseChangeLog:
             tableName: users
             columns:
               - column:
-                  name: id
+                  name: model_id
+                  type: int
+                  constraints:
+                    notNull: true
+              - column:
+                  name: outer_id
                   type: int
                   constraints:
                     primaryKey: true

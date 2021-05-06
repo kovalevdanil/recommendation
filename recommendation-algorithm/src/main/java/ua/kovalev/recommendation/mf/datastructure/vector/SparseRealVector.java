@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class SparseRealVector implements SparseVector, Iterable<Map.Entry<Integer, Double>>{
     private Map<Integer, Double> dataMap = new HashMap<>();
-    private final int size;
+    private int size;
 
     public SparseRealVector(int size) {
         this.size = size;
@@ -88,5 +88,9 @@ public class SparseRealVector implements SparseVector, Iterable<Map.Entry<Intege
     @Override
     public Iterator<Map.Entry<Integer, Double>> iterator() {
         return sparseIterator();
+    }
+
+    public void incrementSize(){
+        size++;
     }
 }

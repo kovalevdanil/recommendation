@@ -19,6 +19,8 @@ import java.util.Map;
 
 public class Main {
 
+    private static final int NEW_USER_NUMBER = 1000;
+
     private static final int EXAMPLES_COUNT = 10;
 
     private static final int RATING_COUNT = 1_000_000;
@@ -27,7 +29,7 @@ public class Main {
 
     private static final Map<String, Object> config = Map.of(
             EALSConfig.FACTORS, 32,
-            EALSConfig.OFFLINE_ITERATIONS, 5,
+            EALSConfig.OFFLINE_ITERATIONS, 1,
             EALSConfig.REGULARIZATION_PARAMETER, 3d,
             EALSConfig.LATENT_INIT_DEVIATION, 0.5,
             EALSConfig.LATENT_INIT_MEAN, 0.01d,
@@ -59,57 +61,69 @@ public class Main {
 
         model.buildModel();
 
-        double avgPredict = 0;
-        double min = 1, max = 0;
-
-        for (int i = 0; i < trainMatrix.getRowCount(); i++){
-            for (int j = 0; j < trainMatrix.getColumnCount(); j++){
-                double currentPredict = model.predict(i, j);
-                avgPredict += currentPredict;
-
-                if (currentPredict > max){
-                    max = currentPredict;
-                }
-
-                if (currentPredict < min){
-                    min = currentPredict;
-                }
-            }
+        startTimeMs = System.currentTimeMillis();
+        int lastNewUser = 1;
+        for (int i = 0; i < NEW_USER_NUMBER; i++){
+            lastNewUser = model.addItem();
         }
+        System.out.println(NEW_USER_NUMBER + " users were added in " + (System.currentTimeMillis() - startTimeMs) + " ms");
 
-        avgPredict /= trainMatrix.getRowCount() * trainMatrix.getColumnCount();
-        System.out.println("Average prediction after " + config.get(EALSConfig.OFFLINE_ITERATIONS) + " iterations is " + avgPredict);
-        System.out.println("Min prediction is " + min);
-        System.out.println("Max prediction is " + max);
+        model.updateModel(1, lastNewUser);
+        model.updateModel(1, lastNewUser);
+        model.updateModel(1, lastNewUser);
+        model.updateModel(data.getUserCount() - 1, lastNewUser);
 
-
-//        for (int i = 0; i < EXAMPLES_COUNT; i++){
-//            Rating testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+//        double avgPredict = 0;
+//        double min = 1, max = 0;
 //
-//            while (data.getRatings().contains(testRating)){
-//                testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+//        for (int i = 0; i < trainMatrix.getRowCount(); i++){
+//            for (int j = 0; j < trainMatrix.getColumnCount(); j++){
+//                double currentPredict = model.predict(i, j);
+//                avgPredict += currentPredict;
+//
+//                if (currentPredict > max){
+//                    max = currentPredict;
+//                }
+//
+//                if (currentPredict < min){
+//                    min = currentPredict;
+//                }
 //            }
-//
-//            System.out.printf("Prediction for user %d and item %d is %f%n", testRating.getUserId(), testRating.getItemId(), model.predict(testRating.getUserId(), testRating.getItemId()));
 //        }
-
-//        int randomUserId = new Random().nextInt(data.getUserCount());
 //
-//        for (int i = 0; i < data.getItemCount(); i += 5){
-//            System.out.printf("Prediction for user %d and item %d is %f%n", randomUserId, i, model.predict(randomUserId, i));
-//        }
-
-        startTimeMs = System.currentTimeMillis();
-        List<Integer> items = model.getRecommendedItems(1, false);
-        System.out.println("Recommendations generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
-        System.out.println(items);
-
-        EALSModel secondModel = new EALSModel(model.getTrainMatrix(), model.getU(), model.getV(), config);
-
-        startTimeMs = System.currentTimeMillis();
-        List<Integer> items2 = secondModel.getRecommendedItems(1, false);
-        System.out.println("Recommendations in produced model generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
-        System.out.println(items);
+//        avgPredict /= trainMatrix.getRowCount() * trainMatrix.getColumnCount();
+//        System.out.println("Average prediction after " + config.get(EALSConfig.OFFLINE_ITERATIONS) + " iterations is " + avgPredict);
+//        System.out.println("Min prediction is " + min);
+//        System.out.println("Max prediction is " + max);
+//
+//
+////        for (int i = 0; i < EXAMPLES_COUNT; i++){
+////            Rating testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+////
+////            while (data.getRatings().contains(testRating)){
+////                testRating = new Rating(new Random().nextInt(data.getUserCount()), new Random().nextInt(data.getItemCount()));
+////            }
+////
+////            System.out.printf("Prediction for user %d and item %d is %f%n", testRating.getUserId(), testRating.getItemId(), model.predict(testRating.getUserId(), testRating.getItemId()));
+////        }
+//
+////        int randomUserId = new Random().nextInt(data.getUserCount());
+////
+////        for (int i = 0; i < data.getItemCount(); i += 5){
+////            System.out.printf("Prediction for user %d and item %d is %f%n", randomUserId, i, model.predict(randomUserId, i));
+////        }
+//
+//        startTimeMs = System.currentTimeMillis();
+//        List<Integer> items = model.getRecommendedItems(1, false);
+//        System.out.println("Recommendations generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
+//        System.out.println(items);
+//
+//        EALSModel secondModel = new EALSModel(model.getTrainMatrix(), model.getU(), model.getV(), config);
+//
+//        startTimeMs = System.currentTimeMillis();
+//        List<Integer> items2 = secondModel.getRecommendedItems(1, false);
+//        System.out.println("Recommendations in produced model generated in " + (System.currentTimeMillis() - startTimeMs) + " ms");
+//        System.out.println(items);
     }
 
     public static SparseRealMatrix buildTrainMatrix(Dataset dataset){
