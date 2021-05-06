@@ -30,6 +30,7 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '2.4.5'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
