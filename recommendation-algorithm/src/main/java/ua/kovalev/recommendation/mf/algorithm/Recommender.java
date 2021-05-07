@@ -11,18 +11,12 @@ public abstract class Recommender {
     @Getter
     protected SparseRealMatrix trainMatrix;
 
-    protected int threadNumber;
-
-    protected int topK;
-
     protected long userCount;
     protected long itemCount;
 
 
-    public Recommender(SparseRealMatrix trainMatrix,  int topK, int threadNumber){
+    public Recommender(SparseRealMatrix trainMatrix){
         this.trainMatrix = trainMatrix;
-        this.threadNumber = threadNumber;
-        this.topK = topK;
 
         this.userCount = trainMatrix.getRowCount();
         this.itemCount = trainMatrix.getColumnCount();

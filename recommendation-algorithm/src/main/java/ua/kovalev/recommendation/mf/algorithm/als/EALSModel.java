@@ -1,29 +1,22 @@
 package ua.kovalev.recommendation.mf.algorithm.als;
 
-
 import lombok.Getter;
 import ua.kovalev.recommendation.mf.algorithm.Recommender;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
-import ua.kovalev.recommendation.mf.data.Rating;
 import ua.kovalev.recommendation.mf.datastructure.Pair;
 import ua.kovalev.recommendation.mf.datastructure.matrix.DenseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
-import ua.kovalev.recommendation.mf.datastructure.vector.SparseRealVector;
 import ua.kovalev.recommendation.mf.util.ArrayUtils;
 import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class EALSModel extends Recommender {
@@ -33,7 +26,7 @@ public class EALSModel extends Recommender {
      */
     private final double lambda;
     private final int factors;
-    private final int maxIteration;
+    private final int maxIterationsOffline;
     private final int maxIterationsOnline;
 
     private final double latentInitMean;
@@ -49,7 +42,7 @@ public class EALSModel extends Recommender {
     private SparseRealMatrix W;
 
     private double[] C;
-    private final double w0;
+    private double w0;
 
     /**
      * Caches
@@ -62,13 +55,13 @@ public class EALSModel extends Recommender {
     private double[] wItems;
     private double[] wUsers;
 
-    private final double newInteractionWeight = 0.1;
+    private double newInteractionWeight;
 
-    public EALSModel(SparseRealMatrix trainMatrix, int topK, int threadNum,
+    public EALSModel(SparseRealMatrix trainMatrix,
                      int maxIteration, int factors, double lambda, double latentInitMean, double latentInitDeviation,
                      double alpha, double w0){
-        super(trainMatrix,topK, threadNum);
-        this.maxIteration = maxIteration;
+        super(trainMatrix);
+        this.maxIterationsOffline = maxIteration;
         this.factors = factors;
         this.lambda = lambda;
         this.latentInitMean = latentInitMean;
@@ -83,28 +76,29 @@ public class EALSModel extends Recommender {
     }
 
     public EALSModel(SparseRealMatrix trainMatrix, Map<String, Object> config){
-        super(trainMatrix, (int)config.getOrDefault(EALSConfig.TOP_K, 10), (int) config.getOrDefault(EALSConfig.THREAD_NUMBER, 1));
+        super(trainMatrix);
 
-        this.maxIteration = (int)config.getOrDefault(EALSConfig.OFFLINE_ITERATIONS, 10);
+        this.maxIterationsOffline = (int)config.getOrDefault(EALSConfig.OFFLINE_ITERATIONS, 10);
         this.factors = (int) config.getOrDefault(EALSConfig.FACTORS, 16);
         this.lambda = (double) config.getOrDefault(EALSConfig.REGULARIZATION_PARAMETER, 0.01);
         this.latentInitDeviation = (double) config.getOrDefault(EALSConfig.LATENT_INIT_DEVIATION, 0.01);
         this.latentInitMean = (double) config.getOrDefault(EALSConfig.LATENT_INIT_MEAN, 0.01);
-        this.w0 = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 1e-4);
+        this.newInteractionWeight = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 0.1);
         this.maxIterationsOnline = (int) config.getOrDefault(EALSConfig.ONLINE_ITERATIONS, 1);
 
+        double c0 = (double) config.getOrDefault(EALSConfig.MISSING_DATA_WEIGHT, 512);
         double alpha = (double) config.getOrDefault(EALSConfig.POPULARITY_SIGNIFICANCE, 0.4);
 
         initWeightMatrix();
         initLatentMatrices();
-        initPopularityVector(alpha, w0);
+        initPopularityVector(alpha, c0);
         initCache();
     }
 
     public EALSModel(SparseRealMatrix trainMatrix, DenseRealMatrix U, DenseRealMatrix V, Map<String, Object> config){
-        super(trainMatrix, (int)config.getOrDefault(EALSConfig.TOP_K, 10), (int) config.getOrDefault(EALSConfig.THREAD_NUMBER, 1));
+        super(trainMatrix);
 
-        this.maxIteration = (int)config.getOrDefault(EALSConfig.OFFLINE_ITERATIONS, 10);
+        this.maxIterationsOffline = (int)config.getOrDefault(EALSConfig.OFFLINE_ITERATIONS, 10);
         this.factors = (int) config.getOrDefault(EALSConfig.FACTORS, 16);
         this.lambda = (double) config.getOrDefault(EALSConfig.REGULARIZATION_PARAMETER, 0.01);
         this.latentInitDeviation = (double) config.getOrDefault(EALSConfig.LATENT_INIT_DEVIATION, 0.01);
@@ -215,7 +209,7 @@ public class EALSModel extends Recommender {
 
     @Override
     public void buildModel() {
-        for (int iteration = 0; iteration < maxIteration; iteration++){
+        for (int iteration = 0; iteration < maxIterationsOffline; iteration++){
             long start = System.currentTimeMillis();
 
             for (int u = 0; u < userCount; u++){
@@ -232,7 +226,7 @@ public class EALSModel extends Recommender {
 
     @Override
     public void updateModel(int u, int i) {
-        if (trainMatrix.getEntry(u, i) != 0){
+        if (trainMatrix.getEntry(u, i) == 0){
             trainMatrix.setEntry(u, i, 1);
             W.setEntry(u, i, newInteractionWeight);
 
@@ -264,8 +258,8 @@ public class EALSModel extends Recommender {
         return itemPool
                 .map(i -> new Pair<>(i, predict(u, i)))
                 .sorted((p1, p2) -> {
-                    Double delta1 = p1.second - 1,
-                            delta2 = p2.second - 1;
+                    Double delta1 = Math.abs(p1.second - 1),
+                            delta2 = Math.abs(p2.second - 1);
                     return delta1.compareTo(delta2);
                 })
                 .limit(k).map(p -> p.first)

@@ -26,21 +26,20 @@ spring:
 model:
   regularization-parameter: 0.01
   factors: 32
-  offline-iterations: 5
+  offline-iterations: 10
   online-iterations: 1
   latent-init-mean: 0
   latent-init-deviation: 0.01
   popularity-significance: 0.4
+  missing-data-weight: 32
   new-item-weight: 0.5
-  thread-number: 1
-  top-k: 10
 
   initializer:
 #    source: NETFLIX
     source: DATABASE
 #    train: true
     user-interaction-threshold: 0
-    load-item-count: 10000
+    load-item-count: 30000
     shrink-users: true
     tables:
       user-interaction: user_item

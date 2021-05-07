@@ -15,7 +15,6 @@ public class ModelProperties {
     private Double latentInitMean;
     private Double latentInitDeviation;
     private Double popularitySignificance;
+    private Double missingDataWeight;
     private Double newItemWeight;
-    private Integer threadNumber;
-    private Integer topK;
 }

@@ -47,9 +47,8 @@ public class ModelConfiguration {
         config.put(EALSConfig.LATENT_INIT_DEVIATION, modelProps.getLatentInitDeviation());
         config.put(EALSConfig.LATENT_INIT_MEAN, modelProps.getLatentInitMean());
         config.put(EALSConfig.POPULARITY_SIGNIFICANCE, modelProps.getPopularitySignificance());
+        config.put(EALSConfig.MISSING_DATA_WEIGHT, modelProps.getMissingDataWeight());
         config.put(EALSConfig.NEW_ITEM_WEIGHT, modelProps.getNewItemWeight());
-        config.put(EALSConfig.THREAD_NUMBER, modelProps.getThreadNumber());
-        config.put(EALSConfig.TOP_K, modelProps.getTopK());
 
         return config;
     }

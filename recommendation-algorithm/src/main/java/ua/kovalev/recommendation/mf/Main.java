@@ -29,11 +29,12 @@ public class Main {
 
     private static final Map<String, Object> config = Map.of(
             EALSConfig.FACTORS, 32,
-            EALSConfig.OFFLINE_ITERATIONS, 50,
-            EALSConfig.REGULARIZATION_PARAMETER, 0.5d,
+            EALSConfig.OFFLINE_ITERATIONS, 30,
+            EALSConfig.REGULARIZATION_PARAMETER, 0.01d,
             EALSConfig.LATENT_INIT_DEVIATION, 0.5,
             EALSConfig.LATENT_INIT_MEAN, 0.01d,
-            EALSConfig.POPULARITY_SIGNIFICANCE, 0.5d,
+            EALSConfig.POPULARITY_SIGNIFICANCE, 0.4d,
+            EALSConfig.MISSING_DATA_WEIGHT, 32d,
             EALSConfig.NEW_ITEM_WEIGHT, 1e-4,
             EALSConfig.TOP_K, 50
     );

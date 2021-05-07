@@ -18,6 +18,7 @@ public final class EALSConfig {
      * alpha
      */
     public static final String POPULARITY_SIGNIFICANCE = "POPULARITY_SIGNIFICANCE";
+    public static final String MISSING_DATA_WEIGHT = "MISSING_DATA_WEIGHT";
 
     public static final String NEW_ITEM_WEIGHT = "NEW_ITEM_WEIGHT";
 
