@@ -24,7 +24,7 @@ public class ModelInitializerProperties {
     /**
      * if train is specified, load only userInteraction matrix and train model
      */
-    private Boolean train = true;
+    private Boolean train = false;
 
     /**
      * if true, netflix dataset is loaded, otherwise table userInteraction is loaded

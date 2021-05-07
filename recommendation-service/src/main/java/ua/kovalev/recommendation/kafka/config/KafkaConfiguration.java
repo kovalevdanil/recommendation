@@ -1,5 +1,6 @@
 package ua.kovalev.recommendation.kafka.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.KafkaListenerErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ua.kovalev.recommendation.kafka.error.SerializationErrorHandler;
@@ -18,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@Slf4j
 public class KafkaConfiguration {
-
 
     @Autowired
     KafkaProperties props;
@@ -58,5 +60,13 @@ public class KafkaConfiguration {
         factory.setErrorHandler(new SerializationErrorHandler());
 
         return factory;
+    }
+
+    @Bean
+    public KafkaListenerErrorHandler eventListenerLogErrorHandler(){
+        return (msg, exception) -> {
+            log.error(exception.getMessage());
+            return null;
+        };
     }
 }

@@ -36,9 +36,9 @@ model:
   top-k: 10
 
   initializer:
-    source: NETFLIX
-#    source: DATABASE
-    train: true
+#    source: NETFLIX
+    source: DATABASE
+#    train: true
     user-interaction-threshold: 0
     load-item-count: 10000
     shrink-users: true

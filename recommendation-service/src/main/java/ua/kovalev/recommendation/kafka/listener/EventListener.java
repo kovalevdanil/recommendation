@@ -45,14 +45,13 @@ public class EventListener {
         eventTypeHandlerMap = map;
     }
 
-    @KafkaListener(containerFactory = "containerFactory", topics = "${kafka.topic.event-topic}")
+    @KafkaListener(containerFactory = "containerFactory", topics = "${kafka.topic.event-topic}", errorHandler = "eventListenerLogErrorHandler")
     public void handleEvent(ConsumerRecord<Key, Event> record){
-        log.info("New record: {}", record.toString());
+        log.info("Kafka record: {}", record.toString());
 
         EventHandler handler = getHandler(record.value().getType());
         if (handler == null){
-            log.info("No handler was found for event {}", record.value().getType());
-            return;
+            throw new RuntimeException("Handler for event " +  record.value().getType() + " was not found");
         }
 
         handler.handle(record.value().getData());
