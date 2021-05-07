@@ -50,8 +50,8 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     @Cacheable(cacheNames = "recommendations", key = "#u")
-    public List<Integer> getRecommendations(EALSModel model, Integer u, boolean excludeInteracted) {
-        return model.getRecommendedItems(u, excludeInteracted);
+    public List<Integer> getRecommendations(EALSModel model, Integer u, Integer count, boolean excludeInteracted) {
+        return model.getRecommendations(u, count, excludeInteracted);
     }
 
     @Override

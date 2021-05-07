@@ -1,5 +1,6 @@
 package ua.kovalev.recommendation.model.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +15,12 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response {
     private User user;
     private List<Movie> items;
-    private Integer itemCount;
+    private Boolean excludeInteracted;
+
+    private Boolean success;
+    private String errorDescription;
 }

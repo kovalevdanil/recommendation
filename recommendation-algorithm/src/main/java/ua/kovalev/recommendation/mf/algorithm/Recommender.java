@@ -49,5 +49,5 @@ public abstract class Recommender {
      * @param excludeInteracted if true, then items that user interacted with are excluded from final list
      * @return list of item ids
      */
-    public abstract List<Integer> getRecommendedItems(int u, boolean excludeInteracted);
+    public abstract List<Integer> getRecommendations(int u, int count, boolean excludeInteracted);
 }

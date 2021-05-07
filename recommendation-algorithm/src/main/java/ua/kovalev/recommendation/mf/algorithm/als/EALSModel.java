@@ -201,7 +201,16 @@ public class EALSModel extends Recommender {
 
     @Override
     public double predict(int u, int i) {
-        return U.getRow(u).multiply(V.getRow(i));
+//        return U.getRow(u).multiply(V.getRow(i));
+        double[] uRow = U.getRowRef(u);
+        double[] iRow = V.getRowRef(i);
+        int size = uRow.length;
+
+        double result = 0;
+        for (int j = 0; j < size; j++){
+            result += uRow[j] * iRow[j];
+        }
+        return result;
     }
 
     @Override
@@ -217,7 +226,7 @@ public class EALSModel extends Recommender {
                 updateItem(i);
             }
 
-            System.out.printf("Iteration #%d, loss %f [%dl ms]%n", iteration + 1, loss(), System.currentTimeMillis() - start);
+            System.out.printf("Iteration #%d, loss %f [%d ms]%n", iteration + 1, loss(), System.currentTimeMillis() - start);
         }
     }
 
@@ -239,50 +248,27 @@ public class EALSModel extends Recommender {
         }
     }
 
-    @Override
-    public List<Integer> getRecommendedItems(int u, boolean excludeInteracted) {
+    public List<Integer> getRecommendations(int u, int k, boolean excludeInteracted){
+        int itemPoolSize = (int) itemCount / 2;
         Random rnd = new Random();
 
-        int userPoolSize = 1000, topPoolSize = 100, itemPoolSize = 2000;
-        // generate random pool of user ids of size userPoolSize
-        List<Integer> userPool = Stream
-                .generate(() -> rnd.nextInt((int) userCount))
-                .limit(userPoolSize)
-                .distinct()
-                // calculate cosine similarity
-                .map(id -> new Pair<>(id, VectorUtils.cosine(U.getRow(u), U.getRow(id))))
-                // sort by similarity
-                .sorted(Comparator.comparing(p -> p.second))
-                .limit(topPoolSize)
-                .map(pair -> pair.first)
-                .collect(Collectors.toList());
-        userPool.remove(Integer.valueOf(u));
-
-        List<Integer> items = Stream
+        Stream<Integer> itemPool = Stream
                 .generate(() -> rnd.nextInt((int)itemCount))
-                .limit(itemPoolSize)
-                .distinct()
-                .collect(Collectors.toList());
+                .limit(itemPoolSize).distinct();
 
-        Map<Integer, Integer> itemInteractionCount = new HashMap<>();
-        for (Integer item: items){
-            itemInteractionCount.put(item, 0);
+        if (excludeInteracted){
+            List<Integer> interacted = VectorUtils.getIndexList(trainMatrix.getRowRef(u));
+            itemPool = itemPool.filter(i -> !interacted.contains(i));
         }
 
-        for (int userId : userPool){
-            SparseRealVector row = trainMatrix.getRowRef(userId);
-
-            for (Map.Entry<Integer, Double> entry : row){
-                int item = entry.getKey();
-                itemInteractionCount.computeIfPresent(item, (k, v) -> v + 1);
-            }
-        }
-
-        return items.stream()
-                .map(item -> new Pair<>(item, itemInteractionCount.get(item)))
-                .sorted(Comparator.comparing(p -> p.second))
-                .limit(topK)
-                .map(p -> p.first)
+        return itemPool
+                .map(i -> new Pair<>(i, predict(u, i)))
+                .sorted((p1, p2) -> {
+                    Double delta1 = p1.second - 1,
+                            delta2 = p2.second - 1;
+                    return delta1.compareTo(delta2);
+                })
+                .limit(k).map(p -> p.first)
                 .collect(Collectors.toList());
     }
 

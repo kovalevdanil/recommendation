@@ -10,7 +10,7 @@ public interface ModelService {
     boolean updateUserVector(EALSModel model, int u);
     boolean updateItemVector(EALSModel model, int i);
 
-    List<Integer> getRecommendations(EALSModel model, Integer u, boolean excludeInteracted);
+    List<Integer> getRecommendations(EALSModel model, Integer u, Integer count, boolean excludeInteracted);
 
     boolean saveUserVector(EALSModel model, int u);
     boolean saveItemVector(EALSModel model, int i);
