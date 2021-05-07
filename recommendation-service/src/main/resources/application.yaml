@@ -1,5 +1,9 @@
 server:
   port: 8000
+  error:
+    include-message: always
+    include-stacktrace: never
+    include-binding-errors: always
 
 spring:
   datasource:
@@ -32,8 +36,9 @@ model:
   top-k: 10
 
   initializer:
-    source: DATABASE
-    train: false
+    source: NETFLIX
+#    source: DATABASE
+    train: true
     user-interaction-threshold: 0
     load-item-count: 10000
     shrink-users: true
@@ -52,5 +57,5 @@ kafka:
     client-id: recommendation-client
     bootstrap-server: localhost:9092
     commit-interval: 5
-    poll-interval: 10
+    poll-interval: 1000
     session-timeout: 30000

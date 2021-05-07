@@ -4,6 +4,7 @@ import lombok.NonNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ua.kovalev.recommendation.api.RestEndpoint;
+import ua.kovalev.recommendation.exception.NotFoundException;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.model.domain.Movie;
 import ua.kovalev.recommendation.model.request.Request;
@@ -38,7 +39,7 @@ public class RecommendationRestEndpoint implements RestEndpoint{
         Integer outerId = request.getUser().getId();
 
         Integer modelId = userMappingService.getModelId(outerId)
-                .orElseThrow(() -> new RuntimeException("Unable to find model id for user"));
+                .orElseThrow(() -> new NotFoundException("Unable to find model id for user " + outerId));
 
         List<Integer> items = modelService.getRecommendations(model, modelId, false);
 

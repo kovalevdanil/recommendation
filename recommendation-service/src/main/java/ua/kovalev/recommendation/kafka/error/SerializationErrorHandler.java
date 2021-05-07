@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SerializationErrorHandler implements ContainerAwareErrorHandler {
 
     @Override
-    public void handle(Exception thrownException, List<ConsumerRecord<?, ?>> records, Consumer<?, ?> consumer, MessageListenerContainer container) {
+    public void handle(@NotNull Exception thrownException, @NotNull List<ConsumerRecord<?, ?>> records, @NotNull Consumer<?, ?> consumer, @NotNull MessageListenerContainer container) {
         doSeeks(records, consumer);
         if (!records.isEmpty()) {
             ConsumerRecord<?, ?> record = records.get(0);

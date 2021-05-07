@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Dataset;
@@ -41,9 +40,12 @@ public class ModelServiceImpl implements ModelService {
     @Value("${mapping.item-table:items}")
     private String itemTable;
 
+    private final ItemMappingService itemMappingService;
+
     @Autowired
-    public ModelServiceImpl(JdbcTemplate template, ModelInitializerProperties props) {
+    public ModelServiceImpl(JdbcTemplate template, ItemMappingService itemMappingService) {
         this.template = template;
+        this.itemMappingService = itemMappingService;
     }
 
     @Override
@@ -99,6 +101,8 @@ public class ModelServiceImpl implements ModelService {
         saveInteractionMatrix(model.getTrainMatrix());
         saveUserVectors(model.getU());
         saveItemVectors(model.getV());
+
+        saveItemMappings(0, model.getV().getRowCount() - 1);
     }
 
     @Override
@@ -142,6 +146,12 @@ public class ModelServiceImpl implements ModelService {
     private void saveItemVectors(DenseRealMatrix V){
         for (int i = 0; i < V.getRowCount(); i++) {
             insertItemVector(i, V.getRowRef(i));
+        }
+    }
+
+    public void saveItemMappings(int poolStart, int poolEnd){
+        for (int id = poolStart; id <= poolEnd; id++) {
+            itemMappingService.save(id, id);
         }
     }
 

@@ -23,15 +23,26 @@ public class ItemCreatedEventHandler implements EventHandler{
 
     @Override
     public void handle(JsonNode data) {
-        ItemCreatedData itemData = mapper.convertValue(data, ItemCreatedData.class);
+        ItemCreatedData itemData = null;
+        try {
+            itemData = mapper.convertValue(data, ItemCreatedData.class);
+        }  catch (Exception ex){
+            log.info("Unable to parse '{}' into {}", data, ItemCreatedData.class.getSimpleName());
+            return;
+        }
         log.info("ItemCreatedData: {}", itemData);
 
         Objects.requireNonNull(itemData);
         Objects.requireNonNull(itemData.getId());
 
         int outerId = itemData.getId();
+        if (itemMappingService.getModelId(outerId).isPresent()){
+            log.info("Mapping for item {} already exists, skipping operation", outerId);
+            return;
+        }
         int modelId = model.addItem();
+        boolean created = itemMappingService.save(outerId, modelId);
 
-        itemMappingService.save(outerId, modelId);
+        log.info("Mapping {}:{} was{}created", outerId, modelId, (created ? " " : " not "));
     }
 }

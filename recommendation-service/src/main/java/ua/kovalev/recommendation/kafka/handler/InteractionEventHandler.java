@@ -27,7 +27,13 @@ public class InteractionEventHandler implements EventHandler{
 
     @Override
     public void handle(JsonNode data) {
-        InteractionData interactionData = mapper.convertValue(data, InteractionData.class);
+        InteractionData interactionData = null;
+        try{
+            interactionData = mapper.convertValue(data, InteractionData.class);
+        } catch (Exception ex){
+            log.info("Unable to parse '{}' into {}", data, InteractionData.class.getSimpleName());
+            return;
+        }
         log.info("InteractionData: {}", interactionData);
 
         Objects.requireNonNull(interactionData);
@@ -35,10 +41,12 @@ public class InteractionEventHandler implements EventHandler{
         Objects.requireNonNull(interactionData.getUserId());
 
         Integer outerUserId = interactionData.getUserId();
-        Integer modelUserId = userMappingService.getModelId(outerUserId).orElse(outerUserId);
+        Integer modelUserId = userMappingService.getModelId(outerUserId)
+                .orElseThrow(() -> new RuntimeException("Mapping for user " + outerUserId + " wasn't found"));
 
         Integer outerItemId = interactionData.getItemId();
-        Integer modelItemId = itemMappingService.getModelId(outerItemId).orElse(outerItemId);
+        Integer modelItemId = itemMappingService.getModelId(outerItemId)
+                .orElseThrow(() -> new RuntimeException("Mapping for item " + outerItemId + " wasn't found"));
 
         model.updateModel(modelUserId, modelItemId);
     }

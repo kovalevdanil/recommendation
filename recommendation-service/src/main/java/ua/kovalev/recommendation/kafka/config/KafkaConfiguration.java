@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ua.kovalev.recommendation.kafka.error.SerializationErrorHandler;
 import ua.kovalev.recommendation.model.event.Event;
@@ -38,7 +39,8 @@ public class KafkaConfiguration {
         propsMap.put(ConsumerConfig.GROUP_ID_CONFIG, props.getConsumer().getGroupId());
         propsMap.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
         propsMap.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, props.getConsumer().getCommitInterval());
-//        propsMap.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, props.getConsumer().getSessionTimeout());
+        propsMap.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, props.getConsumer().getSessionTimeout());
+        propsMap.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, props.getConsumer().getPollInterval());
         propsMap.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         propsMap.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
@@ -50,8 +52,8 @@ public class KafkaConfiguration {
         ConcurrentKafkaListenerContainerFactory<Key, Event> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
                 consumerFactoryConfig(),
-                new JsonDeserializer<>(Key.class),
-                new JsonDeserializer<>(Event.class)
+                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(Key.class)),
+                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(Event.class))
         ));
         factory.setErrorHandler(new SerializationErrorHandler());
 

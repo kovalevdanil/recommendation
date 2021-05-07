@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -36,6 +38,8 @@ public class EALSModel extends Recommender {
 
     private final double latentInitMean;
     private final double latentInitDeviation;
+
+    private final Lock addLock = new ReentrantLock();
 
     @Getter
     private DenseRealMatrix U;
@@ -220,7 +224,6 @@ public class EALSModel extends Recommender {
     @Override
     public void updateModel(int u, int i) {
         if (trainMatrix.getEntry(u, i) != 0){
-
             trainMatrix.setEntry(u, i, 1);
             W.setEntry(u, i, newInteractionWeight);
 
@@ -380,6 +383,8 @@ public class EALSModel extends Recommender {
 
     public synchronized int addUser(){
 
+        addLock.lock();
+
         U.addRowInit(latentInitMean, latentInitDeviation);
         W.addRow();
         trainMatrix.addRow();
@@ -398,10 +403,15 @@ public class EALSModel extends Recommender {
 
         userCount++;
 
+        addLock.unlock();
+
         return (int) userCount - 1;
     }
 
     public synchronized int addItem(){
+
+        addLock.lock();
+
         V.addRowInit(latentInitMean, latentInitDeviation);
         W.addColumn();
         trainMatrix.addColumn();
@@ -415,6 +425,9 @@ public class EALSModel extends Recommender {
         itemCount++;
 
         initSV();
+
+        addLock.unlock();
+
         return (int) itemCount - 1;
     }
 

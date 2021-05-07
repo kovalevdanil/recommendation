@@ -24,15 +24,27 @@ public class UserCreatedEventHandler implements EventHandler{
 
     @Override
     public void handle(JsonNode data) {
-        UserCreatedData userData = mapper.convertValue(data, UserCreatedData.class);
+        UserCreatedData userData;
+        try {
+            userData = mapper.convertValue(data, UserCreatedData.class);
+        }  catch (Exception ex){
+            log.info("Unable to parse '{}' into {}", data, UserCreatedData.class.getSimpleName());
+            return;
+        }
         log.info("UserCreatedData: {}", userData);
 
         Objects.requireNonNull(userData);
         Objects.requireNonNull(userData.getId());
 
         int outerId = userData.getId();
-        int modelId = model.addUser();
+        if (userMappingService.getModelId(outerId).isPresent()){
+            log.info("Mapping for user {} already exists, skipping operation", outerId);
+            return;
+        }
 
-        userMappingService.save(outerId, modelId);
+        int modelId = model.addUser();
+        boolean created = userMappingService.save(outerId, modelId);
+
+        log.info("Mapping {}:{} was{}created", outerId, modelId, (created ? " " : " not "));
     }
 }

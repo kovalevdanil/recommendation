@@ -33,6 +33,9 @@ public class ItemMappingService implements MappingService{
 
     @Override
     public boolean save(Integer outerId, Integer modelId){
+        if (getModelId(outerId).isPresent()){
+            return false;
+        }
         return template.update("insert into " + itemTable + "(outer_id, model_id) values (?, ?)", outerId, modelId) == 1;
     }
 }
