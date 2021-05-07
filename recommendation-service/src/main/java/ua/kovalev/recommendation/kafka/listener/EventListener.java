@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import ua.kovalev.recommendation.kafka.config.KafkaProperties;
 import ua.kovalev.recommendation.kafka.handler.EventHandler;
 import ua.kovalev.recommendation.model.event.Event;
 import ua.kovalev.recommendation.model.event.EventType;

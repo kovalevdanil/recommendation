@@ -2,7 +2,7 @@ package ua.kovalev.recommendation.utils;
 
 import lombok.experimental.UtilityClass;
 import org.springframework.validation.Errors;
-import ua.kovalev.recommendation.model.domain.Movie;
+import ua.kovalev.recommendation.model.domain.Item;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
 
@@ -27,7 +27,7 @@ public class ResponseConverter {
 
     public static Response createSuccessResponse(Request request, List<Integer> items){
         return Response.builder()
-                .items(items.stream().map(Movie::new).collect(Collectors.toList()))
+                .items(items.stream().map(Item::new).collect(Collectors.toList()))
                 .success(true)
                 .excludeInteracted(request.getExcludeInteracted())
                 .user(request.getUser())
