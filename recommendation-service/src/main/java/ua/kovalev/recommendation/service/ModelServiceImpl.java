@@ -2,23 +2,11 @@ package ua.kovalev.recommendation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ua.kovalev.recommendation.config.properties.ModelConfig;
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
-import ua.kovalev.recommendation.config.properties.ModelProperties;
-import ua.kovalev.recommendation.exception.NotFoundException;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
-import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
-import ua.kovalev.recommendation.mf.data.Dataset;
-import ua.kovalev.recommendation.mf.data.Rating;
-import ua.kovalev.recommendation.mf.datastructure.matrix.DenseRealMatrix;
-import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
-import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
-import ua.kovalev.recommendation.mf.util.DatasetUtils;
-import ua.kovalev.recommendation.mf.util.VectorUtils;
 import ua.kovalev.recommendation.model.loader.ModelLoader;
 import ua.kovalev.recommendation.model.loader.ModelLoaderFactory;
 import ua.kovalev.recommendation.model.repository.ItemRepository;
@@ -27,13 +15,11 @@ import ua.kovalev.recommendation.model.repository.UserRepository;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
 import ua.kovalev.recommendation.utils.ResponseConverter;
-import ua.kovalev.recommendation.utils.SerializeUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ua.kovalev.recommendation.utils.AssertUtils.requireTrue;
 
 @Service
 public class ModelServiceImpl implements ModelService {

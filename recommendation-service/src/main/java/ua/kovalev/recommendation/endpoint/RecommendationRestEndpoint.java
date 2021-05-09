@@ -9,8 +9,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 import ua.kovalev.recommendation.api.RestEndpoint;
-import ua.kovalev.recommendation.config.properties.ModelSources;
-import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
 import ua.kovalev.recommendation.service.ModelService;
