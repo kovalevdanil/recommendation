@@ -13,6 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResponseTechData implements Serializable {
+    private String responseCode;
     private Boolean success;
     private Boolean fromCache;
     private UUID correlationId;

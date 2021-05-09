@@ -14,6 +14,7 @@ import ua.kovalev.recommendation.model.repository.ModelRepository;
 import ua.kovalev.recommendation.model.repository.UserRepository;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
+import ua.kovalev.recommendation.model.response.ResponseCodes;
 import ua.kovalev.recommendation.utils.ResponseConverter;
 
 import javax.annotation.PostConstruct;
@@ -116,7 +117,7 @@ public class ModelServiceImpl implements ModelService {
 
         if (modelIdOptional.isEmpty()){
             return ResponseConverter
-                    .createResponseWithErrorDescription(request, "No user with id " + outerId + " found");
+                    .createResponseWithErrorDescription(request, ResponseCodes.USER_NOT_FOUND,"User with id " + outerId + " not found");
         }
 
         List<Integer> items = model

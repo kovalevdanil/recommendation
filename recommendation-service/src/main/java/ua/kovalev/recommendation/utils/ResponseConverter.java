@@ -6,6 +6,7 @@ import ua.kovalev.recommendation.model.domain.Item;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
 import ua.kovalev.recommendation.model.response.ResponseBusinessData;
+import ua.kovalev.recommendation.model.response.ResponseCodes;
 import ua.kovalev.recommendation.model.response.ResponseTechData;
 
 import java.text.MessageFormat;
@@ -23,6 +24,7 @@ public class ResponseConverter {
 
         return Response.builder()
                 .techData(ResponseTechData.builder()
+                        .responseCode(ResponseCodes.BAD_REQUEST)
                         .correlationId(request.getTechData().getCorrelationId())
                         .errorDescription(errorDescription)
                         .success(false)
@@ -30,10 +32,11 @@ public class ResponseConverter {
                 .build();
     }
 
-    public static Response createResponseWithErrorDescription(Request request, String errorDescription){
+    public static Response createResponseWithErrorDescription(Request request, String responseCode, String errorDescription){
         return Response.builder()
             .techData(ResponseTechData.builder()
                     .success(false)
+                    .responseCode(responseCode)
                     .errorDescription(errorDescription)
                     .correlationId(request.getTechData().getCorrelationId())
                     .build())
@@ -48,6 +51,7 @@ public class ResponseConverter {
                         .user(request.getBusinessData().getUser())
                         .build())
                 .techData(ResponseTechData.builder()
+                        .responseCode(ResponseCodes.OK)
                         .correlationId(request.getTechData().getCorrelationId())
                         .fromCache(!request.getTechData().getDisableCache())
                         .success(true)
