@@ -2,30 +2,28 @@ package ua.kovalev.recommendation.model.loader;
 
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
-import ua.kovalev.recommendation.service.ModelService;
+import ua.kovalev.recommendation.model.repository.ModelRepository;
 
 import java.util.Map;
 
 public class DatabaseModelLoader implements ModelLoader{
 
-    private final ModelService modelService;
-    private final Map<String, Object> config;
     private final ModelInitializerProperties initializerProperties;
+    private final ModelRepository modelRepository;
 
-    public DatabaseModelLoader(ModelInitializerProperties props, Map<String, Object> config, ModelService modelService) {
-        this.modelService = modelService;
-        this.config = config;
+    public DatabaseModelLoader(ModelInitializerProperties props, ModelRepository modelRepository) {
         this.initializerProperties = props;
+        this.modelRepository = modelRepository;
     }
 
     @Override
-    public EALSModel load() {
+    public EALSModel load(Map<String, Object> config) {
         EALSModel model = null;
 
         if (initializerProperties.getTrain()){
-            model = modelService.loadOnlyInteractions(config);
+            model = modelRepository.loadRaw(config);
         } else {
-            model = modelService.loadFullModel(config);
+            model = modelRepository.loadTrained(config);
         }
 
         return model;

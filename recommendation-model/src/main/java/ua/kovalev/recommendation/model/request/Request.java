@@ -19,6 +19,7 @@ public class Request {
     private User user;
 
     @Min(1)
+    @NotNull
     private Integer itemCount;
 
     private Boolean excludeInteracted;

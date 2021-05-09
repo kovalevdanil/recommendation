@@ -38,9 +38,9 @@ model:
 #    source: NETFLIX
     source: DATABASE
 #    train: true
-    user-interaction-threshold: 0
-    load-item-count: 30000
-    shrink-users: true
+#    user-interaction-threshold: 0
+#    load-item-count: 30000
+#    shrink-users: true
     tables:
       user-interaction: user_item
       user-vector: user_vectors

@@ -20,15 +20,13 @@ public class NetflixModelLoader implements ModelLoader{
 
 
     private ModelInitializerProperties props;
-    private Map<String, Object> modelConfig;
 
-    public NetflixModelLoader(ModelInitializerProperties props, Map<String, Object> modelConfig){
+    public NetflixModelLoader(ModelInitializerProperties props){
         this.props = props;
-        this.modelConfig = modelConfig;
     }
 
     @Override
-    public EALSModel load() {
+    public EALSModel load(Map<String, Object> config) {
         List<DatasetFilter> filters = new ArrayList<>();
 
         if (props.getUserInteractionThreshold() != null){
@@ -52,6 +50,6 @@ public class NetflixModelLoader implements ModelLoader{
 
         SparseRealMatrix matrix = DatasetUtils.buildDatasetMatrix(dataset);
 
-        return new EALSModel(matrix, modelConfig);
+        return new EALSModel(matrix, config);
     }
 }

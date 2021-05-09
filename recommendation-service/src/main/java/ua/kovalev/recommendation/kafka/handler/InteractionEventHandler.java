@@ -3,10 +3,8 @@ package ua.kovalev.recommendation.kafka.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.model.event.data.InteractionData;
-import ua.kovalev.recommendation.service.ItemMappingService;
-import ua.kovalev.recommendation.service.UserMappingService;
+import ua.kovalev.recommendation.service.ModelService;
 
 import java.util.Objects;
 
@@ -14,15 +12,11 @@ import java.util.Objects;
 public class InteractionEventHandler implements EventHandler{
 
     private final ObjectMapper mapper;
-    private final EALSModel model;
-    private final UserMappingService userMappingService;
-    private final ItemMappingService itemMappingService;
+    private final ModelService modelService;
 
-    public InteractionEventHandler(ObjectMapper mapper, EALSModel model, UserMappingService userMappingService, ItemMappingService itemMappingService) {
+    public InteractionEventHandler(ObjectMapper mapper, ModelService modelService) {
         this.mapper = mapper;
-        this.model = model;
-        this.userMappingService = userMappingService;
-        this.itemMappingService = itemMappingService;
+        this.modelService = modelService;
     }
 
     @Override
@@ -31,7 +25,7 @@ public class InteractionEventHandler implements EventHandler{
         try{
             interactionData = mapper.convertValue(data, InteractionData.class);
         } catch (Exception ex){
-            log.info("Unable to parse '{}' into {}", data, InteractionData.class.getSimpleName());
+            log.error("Unable to parse '{}' into {}", data, InteractionData.class.getSimpleName());
             return;
         }
         log.info("InteractionData: {}", interactionData);
@@ -40,14 +34,6 @@ public class InteractionEventHandler implements EventHandler{
         Objects.requireNonNull(interactionData.getItemId());
         Objects.requireNonNull(interactionData.getUserId());
 
-        Integer outerUserId = interactionData.getUserId();
-        Integer modelUserId = userMappingService.getModelId(outerUserId)
-                .orElseThrow(() -> new RuntimeException("Mapping for user " + outerUserId + " wasn't found"));
-
-        Integer outerItemId = interactionData.getItemId();
-        Integer modelItemId = itemMappingService.getModelId(outerItemId)
-                .orElseThrow(() -> new RuntimeException("Mapping for item " + outerItemId + " wasn't found"));
-
-        model.updateModel(modelUserId, modelItemId);
+        modelService.update(interactionData.getUserId(), interactionData.getItemId());
     }
 }
