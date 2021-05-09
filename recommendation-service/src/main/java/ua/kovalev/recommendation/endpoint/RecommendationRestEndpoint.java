@@ -14,6 +14,7 @@ import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
 import ua.kovalev.recommendation.service.ModelService;
+import ua.kovalev.recommendation.utils.RequestUtils;
 import ua.kovalev.recommendation.utils.ResponseConverter;
 
 @RestController
@@ -29,9 +30,10 @@ public class RecommendationRestEndpoint implements RestEndpoint{
 
     @Override
     public ResponseEntity<Response> getRecommendations(@NonNull @RequestBody Request request) {
+        RequestUtils.normalizeRequest(request);
+
         Errors errors = new BeanPropertyBindingResult(request, "request");
         validator.validate(request, errors);
-
         if (errors.hasErrors()){
             Response response = ResponseConverter
                     .createResponseFromBadRequest(request, errors);
@@ -40,7 +42,7 @@ public class RecommendationRestEndpoint implements RestEndpoint{
 
         Response response = service.recommendations(request);
 
-        if (!response.getSuccess()){
+        if (!response.getTechData().getSuccess()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 

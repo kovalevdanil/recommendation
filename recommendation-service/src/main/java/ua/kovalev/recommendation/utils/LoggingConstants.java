@@ -11,6 +11,5 @@ public class LoggingConstants {
     public static final String ARGUMENTS = "Arguments";
     public static final String RESULT = "Result";
     public static final String ERROR_DESCRIPTION = "ErrorDescription";
-
-
+    public static final String CORRELATION_ID = "CorrelationId";
 }

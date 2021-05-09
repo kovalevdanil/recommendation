@@ -84,11 +84,14 @@ public class ModelServiceImpl implements ModelService {
     @Override
     public void build() {
         model.buildModel();
-        modelRepository.save(model);
 
-        int itemPool = model.getItemCount();
-        for (int id = 0; id < itemPool; id++){
-            itemRepository.save(id, id);
+        if (initProps.getSaveAfterBuild()){
+            modelRepository.save(model);
+
+            int itemPool = model.getItemCount();
+            for (int id = 0; id < itemPool; id++){
+                itemRepository.save(id, id);
+            }
         }
     }
 
@@ -119,20 +122,19 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
+    @Cacheable(value = "recommendations", key = "#request.businessData.user.id", unless = "#request.techData.disableCache")
     public Response recommendations(Request request) {
-        Integer outerId = request.getUser().getId();
+        Integer outerId = request.getBusinessData().getUser().getId();
 
         Optional<Integer> modelIdOptional = userRepository.findModelId(outerId);
 
         if (modelIdOptional.isEmpty()){
-            return Response.builder()
-                    .success(false)
-                    .errorDescription("No user with id " + outerId + " found")
-                    .build();
+            return ResponseConverter
+                    .createResponseWithErrorDescription(request, "No user with id " + outerId + " found");
         }
 
         List<Integer> items = model
-                .getRecommendations(modelIdOptional.get(), request.getItemCount(), request.getExcludeInteracted())
+                .getRecommendations(modelIdOptional.get(), request.getBusinessData().getItemCount(),  request.getBusinessData().getExcludeInteracted())
                 .stream().map(item -> itemRepository.findOuterId(item).orElse(OUTER_ID_NOT_FOUND_DEFAULT))
                 .filter(item -> !OUTER_ID_NOT_FOUND_DEFAULT.equals(item))
                 .collect(Collectors.toList());

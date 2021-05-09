@@ -46,8 +46,9 @@ public class ModelRepository {
         // NOSONAR
     }
 
-    // TODO update user and item vectors
     public boolean update(@NotNull EALSModel model, @NotNull Integer u, @NotNull Integer i){
+        updateUser(model, u);
+        updateItem(model, i);
         return template.update("insert into " + userInteractionTable + " values (?, ?)", u, i) > 0;
     }
 
