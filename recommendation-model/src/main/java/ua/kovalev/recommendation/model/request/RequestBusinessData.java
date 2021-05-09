@@ -12,13 +12,17 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class Request {
-
+@NoArgsConstructor
+public class RequestBusinessData {
     @NotNull
     @Valid
-    private RequestBusinessData businessData;
+    private User user;
 
-    private RequestTechData techData;
+    @Min(1)
+    @NotNull
+    private Integer itemCount;
+
+    @NotNull
+    private Boolean excludeInteracted;
 }

@@ -11,8 +11,10 @@ public abstract class Recommender {
     @Getter
     protected SparseRealMatrix trainMatrix;
 
-    protected long userCount;
-    protected long itemCount;
+    @Getter
+    protected int userCount;
+    @Getter
+    protected int itemCount;
 
 
     public Recommender(SparseRealMatrix trainMatrix){

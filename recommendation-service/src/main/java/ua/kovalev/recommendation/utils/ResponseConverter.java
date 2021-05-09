@@ -5,6 +5,8 @@ import org.springframework.validation.Errors;
 import ua.kovalev.recommendation.model.domain.Item;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
+import ua.kovalev.recommendation.model.response.ResponseBusinessData;
+import ua.kovalev.recommendation.model.response.ResponseTechData;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -20,17 +22,36 @@ public class ResponseConverter {
                 .collect(Collectors.joining("; "));
 
         return Response.builder()
-                .errorDescription(errorDescription)
-                .success(false)
+                .techData(ResponseTechData.builder()
+                        .correlationId(request.getTechData().getCorrelationId())
+                        .errorDescription(errorDescription)
+                        .success(false)
+                        .build())
+                .build();
+    }
+
+    public static Response createResponseWithErrorDescription(Request request, String errorDescription){
+        return Response.builder()
+            .techData(ResponseTechData.builder()
+                    .success(false)
+                    .errorDescription(errorDescription)
+                    .correlationId(request.getTechData().getCorrelationId())
+                    .build())
                 .build();
     }
 
     public static Response createSuccessResponse(Request request, List<Integer> items){
         return Response.builder()
-                .items(items.stream().map(Item::new).collect(Collectors.toList()))
-                .success(true)
-                .excludeInteracted(request.getExcludeInteracted())
-                .user(request.getUser())
+                .businessData(ResponseBusinessData.builder()
+                        .excludeInteracted(request.getBusinessData().getExcludeInteracted())
+                        .items(items.stream().map(Item::new).collect(Collectors.toList()))
+                        .user(request.getBusinessData().getUser())
+                        .build())
+                .techData(ResponseTechData.builder()
+                        .correlationId(request.getTechData().getCorrelationId())
+                        .fromCache(!request.getTechData().getDisableCache())
+                        .success(true)
+                        .build())
                 .build();
     }
 

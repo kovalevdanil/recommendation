@@ -1,10 +1,15 @@
 package ua.kovalev.recommendation.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import ua.kovalev.recommendation.config.properties.ModelConfig;
+import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
+import ua.kovalev.recommendation.config.properties.ModelProperties;
+import ua.kovalev.recommendation.exception.NotFoundException;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Dataset;
@@ -14,283 +19,126 @@ import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
 import ua.kovalev.recommendation.mf.util.DatasetUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
+import ua.kovalev.recommendation.model.loader.ModelLoader;
+import ua.kovalev.recommendation.model.loader.ModelLoaderFactory;
+import ua.kovalev.recommendation.model.repository.ItemRepository;
+import ua.kovalev.recommendation.model.repository.ModelRepository;
+import ua.kovalev.recommendation.model.repository.UserRepository;
+import ua.kovalev.recommendation.model.request.Request;
+import ua.kovalev.recommendation.model.response.Response;
+import ua.kovalev.recommendation.utils.ResponseConverter;
 import ua.kovalev.recommendation.utils.SerializeUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ua.kovalev.recommendation.utils.AssertUtils.requireTrue;
 
 @Service
 public class ModelServiceImpl implements ModelService {
 
-    private final JdbcTemplate template;
-
-    @Value("${model.initializer.tables.user-vector}")
-    private String userVectorTable;
-
-    @Value("${model.initializer.tables.item-vector}")
-    private String itemVectorTable;
-
-    @Value("${model.initializer.tables.user-interaction}")
-    private String userInteractionTable;
-
-    @Value("${mapping.user-table:users}")
-    private String userTable;
-
-    @Value("${mapping.item-table:items}")
-    private String itemTable;
-
-    private final ItemMappingService itemMappingService;
+    private final Integer OUTER_ID_NOT_FOUND_DEFAULT = -1;
 
     @Autowired
-    public ModelServiceImpl(JdbcTemplate template, ItemMappingService itemMappingService) {
-        this.template = template;
-        this.itemMappingService = itemMappingService;
+    ModelRepository modelRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    ItemRepository itemRepository;
+
+    EALSModel model;
+
+    @Autowired
+    ModelInitializerProperties initProps;
+
+    @Autowired
+    ModelLoaderFactory modelLoaderFactory;
+
+    @Autowired
+    @Qualifier("modelConfig")
+    ModelConfig config;
+
+    @PostConstruct
+    public void init(){
+        ModelLoader loader = modelLoaderFactory.getModelLoader(initProps.getSource());
+        model = loader.load(config.getConfig());
+
     }
 
     @Override
-    @Cacheable(cacheNames = "recommendations", key = "#u")
-    public List<Integer> getRecommendations(EALSModel model, Integer u, Integer count, boolean excludeInteracted) {
-        return model.getRecommendations(u, count, excludeInteracted);
+    public boolean update(Integer u, Integer i) {
+        Integer modelUserId = userRepository.findModelId(u)
+                .orElseThrow(() -> new RuntimeException("Mapping for user " + u + " wasn't found"));
+
+        Integer modelItemId = itemRepository.findModelId(i)
+                .orElseThrow(() -> new RuntimeException("Mapping for item " + i + " wasn't found"));
+
+        model.updateModel(modelUserId, modelItemId);
+
+        return modelRepository.update(model, u, i);
     }
 
     @Override
-    public boolean updateUserVector(EALSModel model, int u) {
-        double[] vector = model.getU().getRowRef(u);
-        return updateUserVector(u, vector);
-    }
+    public void build() {
+        model.buildModel();
 
-    @Override
-    public boolean updateItemVector(EALSModel model, int i) {
-        double[] vector = model.getV().getRowRef(i);
-        return updateItemVector(i, vector);
-    }
+        if (initProps.getSaveAfterBuild()){
+            modelRepository.save(model);
 
-
-    @Override
-    public boolean saveUserVector(EALSModel model, int u) {
-        return insertUserVector(u, model.getU().getRowRef(u));
-    }
-
-    @Override
-    public boolean saveItemVector(EALSModel model, int i) {
-        return insertItemVector(i, model.getV().getRowRef(i));
-    }
-
-    @Override
-    public boolean persistUserInteraction(EALSModel model, int u, int i) {
-        requireTrue(u >= 0 && u < model.getTrainMatrix().getRowCount(), "User ID out of bounds [0, " + model.getTrainMatrix().getRowCount() + "]");
-        requireTrue(i >= 0 && i < model.getTrainMatrix().getColumnCount(), "Item ID out of bounds [0, " + model.getTrainMatrix().getColumnCount() + "]");
-        requireTrue(model.getTrainMatrix().getEntry(u, i) == 0, "Interaction is already captured");
-
-        return saveInteraction(u, i) && updateUserVector(model, u) && updateItemVector(model, i);
-    }
-
-    /**
-     * Method will rewrite whole database (it will drop existing vectors and interactions)
-     * @param model model to dump
-     */
-    @Override
-    public void dumpModel(EALSModel model) {
-        clearTable(userVectorTable);
-        clearTable(itemVectorTable);
-        clearTable(userInteractionTable);
-        clearTable(itemTable);
-        clearTable(userTable);
-
-        saveInteractionMatrix(model.getTrainMatrix());
-        saveUserVectors(model.getU());
-        saveItemVectors(model.getV());
-
-        saveItemMappings(0, model.getV().getRowCount() - 1);
-    }
-
-    @Override
-    public EALSModel loadOnlyInteractions(Map<String, Object> config) {
-        Dataset dataset = loadDataset();
-        SparseRealMatrix interactionMatrix = DatasetUtils.buildDatasetMatrix(dataset);
-        return new EALSModel(interactionMatrix, config);
-    }
-
-    @Override
-    public EALSModel loadFullModel(Map<String, Object> config) {
-        assert config.containsKey(EALSConfig.FACTORS);
-
-        Dataset dataset = loadDataset();
-        SparseRealMatrix interactionMatrix = DatasetUtils.buildDatasetMatrix(dataset);
-
-        int factors = (int) config.get(EALSConfig.FACTORS);
-        DenseRealMatrix U = loadUserVectors(factors);
-        DenseRealMatrix V = loadItemVectors(factors);
-
-        assert U.getRowCount() == interactionMatrix.getRowCount();
-        assert V.getRowCount() == interactionMatrix.getColumnCount();
-
-        return new EALSModel(interactionMatrix, U, V, config);
-    }
-
-    private void saveInteractionMatrix(SparseRealMatrix matrix){
-        for (int u = 0; u < matrix.getRowCount(); u++){
-            for (int i : VectorUtils.getIndexList(matrix.getRowRef(u))){
-                saveInteraction(u, i);
+            int itemPool = model.getItemCount();
+            for (int id = 0; id < itemPool; id++){
+                itemRepository.save(id, id);
             }
         }
     }
 
-    private void saveUserVectors(DenseRealMatrix U){
-        for (int u = 0; u < U.getRowCount(); u++) {
-            insertUserVector(u, U.getRowRef(u));
-        }
-    }
-
-    private void saveItemVectors(DenseRealMatrix V){
-        for (int i = 0; i < V.getRowCount(); i++) {
-            insertItemVector(i, V.getRowRef(i));
-        }
-    }
-
-    public void saveItemMappings(int poolStart, int poolEnd){
-        for (int id = poolStart; id <= poolEnd; id++) {
-            itemMappingService.save(id, id);
-        }
-    }
-
-    private void clearTable(String tableName){
-        template.execute("delete from " + tableName);
-    }
-
-    public int getMaxUserId(){
-        Integer maxUserTable = template.queryForObject(String.format("select max(model_id) from %s", userTable), Integer.class);
-        Integer maxInteractionTable = template.queryForObject(String.format("select max(user_id) from %s", userInteractionTable), Integer.class);
-
-        if (maxUserTable == null){
-            return maxInteractionTable == null ? 0 : maxInteractionTable;
+    @Override
+    public Integer addUser(Integer id) {
+        if (userRepository.existsByOuterId(id)){
+            throw new RuntimeException("User with id " + id + " already exists");
         }
 
-        if (maxInteractionTable == null){
-            return maxUserTable;
+        int modelId = model.addUser();
+        userRepository.save(id, modelId);
+        modelRepository.saveUser(model, modelId);
+
+        return modelId;
+    }
+
+    @Override
+    public Integer addItem(Integer id) {
+        if (itemRepository.existsByOuterId(id)){
+            throw new RuntimeException("Item with id " + id + " already exists");
         }
 
-        return Math.max(maxUserTable, maxInteractionTable);
+        int modelId = model.addItem();
+        itemRepository.save(id, modelId);
+        modelRepository.saveItem(model, modelId);
+
+        return modelId;
     }
 
-    public int getMaxItemId(){
-        Integer maxItemTable = template.queryForObject(String.format("select max(model_id) from %s", itemTable), Integer.class);
-        Integer maxInteractionTable = template.queryForObject(String.format("select max(item_id) from %s", userInteractionTable), Integer.class);
+    @Override
+    @Cacheable(value = "recommendations", key = "#request.businessData.user.id", unless = "#request.techData.disableCache")
+    public Response recommendations(Request request) {
+        Integer outerId = request.getBusinessData().getUser().getId();
 
-        if (maxItemTable == null){
-            return maxInteractionTable == null ? 0 : maxInteractionTable;
+        Optional<Integer> modelIdOptional = userRepository.findModelId(outerId);
+
+        if (modelIdOptional.isEmpty()){
+            return ResponseConverter
+                    .createResponseWithErrorDescription(request, "No user with id " + outerId + " found");
         }
 
-        if (maxInteractionTable == null){
-            return maxItemTable;
-        }
+        List<Integer> items = model
+                .getRecommendations(modelIdOptional.get(), request.getBusinessData().getItemCount(),  request.getBusinessData().getExcludeInteracted())
+                .stream().map(item -> itemRepository.findOuterId(item).orElse(OUTER_ID_NOT_FOUND_DEFAULT))
+                .filter(item -> !OUTER_ID_NOT_FOUND_DEFAULT.equals(item))
+                .collect(Collectors.toList());
 
-        return Math.max(maxItemTable, maxInteractionTable);
-    }
-
-    public boolean saveInteraction(Integer u, Integer i){
-        return template.update("insert into " + userInteractionTable + " values (?, ?)", u, i) > 0;
-    }
-
-    public boolean updateUserVector(Integer u, double[] vector){
-        byte[] byteVector = null;
-        try {
-            byteVector = SerializeUtils.serializeDoubleArray(vector);
-        } catch (Exception ex){
-            throw new RuntimeException("Unable to serialize vector");
-        }
-
-        return template.update("update " + userVectorTable + " set vector = ? where user_id = ?", byteVector, u) > 0;
-    }
-
-    public boolean insertUserVector(Integer u, double[] vector){
-        byte[] byteVector = null;
-        try {
-            byteVector = SerializeUtils.serializeDoubleArray(vector);
-        } catch (Exception ex){
-            throw new RuntimeException("Unable to serialize vector");
-        }
-
-        return template.update("insert into " + userVectorTable + " values(?, ?)", u, byteVector) > 0;
-    }
-
-    public boolean updateItemVector(Integer i, double[] vector){
-        byte[] byteVector = null;
-        try {
-            byteVector = SerializeUtils.serializeDoubleArray(vector);
-        } catch (Exception ex){
-            throw new RuntimeException("Unable to serialize vector");
-        }
-
-        return template.update("update " + itemVectorTable + " set vector = ? where item_id = ?", byteVector, i) > 0;
-    }
-
-    public boolean insertItemVector(Integer i, double[] vector){
-        byte[] byteVector = null;
-        try {
-            byteVector = SerializeUtils.serializeDoubleArray(vector);
-        } catch (Exception ex){
-            throw new RuntimeException("Unable to serialize vector");
-        }
-
-        return template.update("insert into " + itemVectorTable + " values(?, ?)", i, byteVector) > 0;
-    }
-
-    public List<Rating> loadRatings(){
-        List<Rating> interactions = new ArrayList<>();
-
-        template.query("select user_id, item_id from " + userInteractionTable, (rs) -> {
-            interactions.add(new Rating(rs.getInt(1), rs.getInt(2)));
-        });
-
-        return interactions;
-    }
-
-    public DenseRealMatrix loadUserVectors(int factors){
-        int userCount = getMaxUserId() + 1;
-
-        DenseRealMatrix U = new DenseRealMatrix(userCount, factors);
-
-        template.query("select user_id, vector from " + userVectorTable, (rs) -> {
-            int u = rs.getInt(1);
-            double[] vector = null;
-            try {
-                vector = SerializeUtils.deserializeByteArrayToDoubleArray(rs.getBytes(2));
-            } catch (Exception ex){
-                throw new RuntimeException();
-            }
-            U.setRow(u, new DenseRealVector(vector));
-        });
-
-        return U;
-    }
-
-    private DenseRealMatrix loadItemVectors(Integer factors) {
-        int itemCount = getMaxItemId() + 1;
-
-        DenseRealMatrix V = new DenseRealMatrix(itemCount, factors);
-
-        template.query("select item_id, vector from " + itemVectorTable, (rs) -> {
-            int u = rs.getInt(1);
-            double[] vector = null;
-            try {
-                vector = SerializeUtils.deserializeByteArrayToDoubleArray(rs.getBytes(2));
-            } catch (Exception ex){
-                throw new RuntimeException();
-            }
-            V.setRow(u, new DenseRealVector(vector));
-        });
-
-        return V;
-    }
-
-    private Dataset loadDataset() {
-        List<Rating> interactions = loadRatings();
-
-        int userCount = getMaxUserId() + 1;
-        int itemCount = getMaxItemId() + 1;
-
-        return new Dataset(interactions, userCount, itemCount);
+        return ResponseConverter.createSuccessResponse(request, items);
     }
 }
