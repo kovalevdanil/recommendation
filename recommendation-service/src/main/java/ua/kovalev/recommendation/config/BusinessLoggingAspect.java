@@ -45,9 +45,10 @@ public class BusinessLoggingAspect {
             CodeSignature signature = (CodeSignature)  joinPoint.getSignature();
             String[] parameterNames = signature.getParameterNames();
 
-            String argsString = IntStream.range(0, args.length)
+            String argsString = normalizeArguments(IntStream.range(0, args.length)
                     .mapToObj(i -> String.format("%s=%s", parameterNames[i], args[i]))
-                    .collect(Collectors.joining("; "));
+                    .collect(Collectors.joining("; "))
+            );
 
             MDC.put(ARGUMENTS, argsString);
 
@@ -94,4 +95,8 @@ public class BusinessLoggingAspect {
 
     @Pointcut("execution (* ua.kovalev.recommendation.service.ModelService.*(..))")
     private void blOperations(){}
+
+    private String normalizeArguments(String args){
+        return "("  + args + ")";
+    }
 }

@@ -73,7 +73,7 @@ public class ModelServiceImpl implements ModelService {
         Integer modelUserId = userRepository.findModelId(u)
                 .orElseThrow(() -> new RuntimeException("Mapping for user " + u + " wasn't found"));
 
-        Integer modelItemId = userRepository.findModelId(i)
+        Integer modelItemId = itemRepository.findModelId(i)
                 .orElseThrow(() -> new RuntimeException("Mapping for item " + i + " wasn't found"));
 
         model.updateModel(modelUserId, modelItemId);
