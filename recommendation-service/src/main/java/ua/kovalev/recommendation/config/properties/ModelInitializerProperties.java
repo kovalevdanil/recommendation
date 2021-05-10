@@ -21,6 +21,10 @@ public class ModelInitializerProperties {
 
     private Boolean saveAfterUpdate = false;
 
+    private Boolean saveItemIdPool = true;
+
+    private Boolean saveUserIdPool = false;
+
     /**
      * if train is specified, load only userInteraction matrix and train model
      */

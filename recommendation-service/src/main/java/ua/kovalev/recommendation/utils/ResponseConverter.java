@@ -1,6 +1,7 @@
 package ua.kovalev.recommendation.utils;
 
 import lombok.experimental.UtilityClass;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
@@ -13,6 +14,8 @@ import ua.kovalev.recommendation.model.response.ResponseTechData;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @UtilityClass
@@ -67,9 +70,18 @@ public class ResponseConverter {
                         .responseCode(ResponseCodes.INTERNAL_SERVER_ERROR)
                         .errorDescription(errorDescription)
                         .success(false)
+                        .correlationId(correlationId())
                         .build())
                 .build();
     }
 
+    public static boolean isDataFromCache(){
+        return Optional.ofNullable(MDC.get(LoggingConstants.DATA_FROM_CACHE))
+                .map(Boolean::valueOf).orElse(false);
+    }
+
+    public static UUID correlationId(){
+        return UUID.fromString(MDC.get(LoggingConstants.CORRELATION_ID));
+    }
 
 }

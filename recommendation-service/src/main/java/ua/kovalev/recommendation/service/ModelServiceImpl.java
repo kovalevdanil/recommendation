@@ -1,11 +1,14 @@
 package ua.kovalev.recommendation.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ua.kovalev.recommendation.config.properties.ModelConfig;
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
+import ua.kovalev.recommendation.exception.BusinessException;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.model.loader.ModelLoader;
 import ua.kovalev.recommendation.model.loader.ModelLoaderFactory;
@@ -15,6 +18,7 @@ import ua.kovalev.recommendation.model.repository.UserRepository;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
 import ua.kovalev.recommendation.model.response.ResponseCodes;
+import ua.kovalev.recommendation.utils.LoggingConstants;
 import ua.kovalev.recommendation.utils.ResponseConverter;
 
 import javax.annotation.PostConstruct;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Slf4j
 public class ModelServiceImpl implements ModelService {
 
     private final Integer OUTER_ID_NOT_FOUND_DEFAULT = -1;
@@ -53,15 +58,18 @@ public class ModelServiceImpl implements ModelService {
         ModelLoader loader = modelLoaderFactory.getModelLoader(initProps.getSource());
         model = loader.load(config.getConfig());
 
+        if (initProps.getTrain()){
+            this.build();
+        }
     }
 
     @Override
     public boolean update(Integer u, Integer i) {
         Integer modelUserId = userRepository.findModelId(u)
-                .orElseThrow(() -> new RuntimeException("Mapping for user " + u + " wasn't found"));
+                .orElseThrow(() -> new BusinessException("Mapping for user " + u + " wasn't found"));
 
         Integer modelItemId = itemRepository.findModelId(i)
-                .orElseThrow(() -> new RuntimeException("Mapping for item " + i + " wasn't found"));
+                .orElseThrow(() -> new BusinessException("Mapping for item " + i + " wasn't found"));
 
         model.updateModel(modelUserId, modelItemId);
 
@@ -75,9 +83,14 @@ public class ModelServiceImpl implements ModelService {
         if (initProps.getSaveAfterBuild()){
             modelRepository.save(model);
 
-            int itemPool = model.getItemCount();
-            for (int id = 0; id < itemPool; id++){
-                itemRepository.save(id, id);
+            if (initProps.getSaveItemIdPool()){
+                int itemPool = model.getItemCount();
+                itemRepository.saveIdPool(itemPool);
+            }
+
+            if (initProps.getSaveUserIdPool()){
+                int userPool = model.getUserCount();
+                userRepository.saveIdPool(userPool);
             }
         }
     }
@@ -85,7 +98,7 @@ public class ModelServiceImpl implements ModelService {
     @Override
     public Integer addUser(Integer id) {
         if (userRepository.existsByOuterId(id)){
-            throw new RuntimeException("User with id " + id + " already exists");
+            throw new BusinessException("User with id " + id + " already exists");
         }
 
         int modelId = model.addUser();
@@ -98,7 +111,7 @@ public class ModelServiceImpl implements ModelService {
     @Override
     public Integer addItem(Integer id) {
         if (itemRepository.existsByOuterId(id)){
-            throw new RuntimeException("Item with id " + id + " already exists");
+            throw new BusinessException("Item with id " + id + " already exists");
         }
 
         int modelId = model.addItem();

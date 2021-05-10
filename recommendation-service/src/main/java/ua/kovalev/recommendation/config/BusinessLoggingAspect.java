@@ -82,8 +82,8 @@ public class BusinessLoggingAspect {
 
         String errorDescription = exception.getMessage();
         MDC.put(ERROR_DESCRIPTION, errorDescription);
-
         log.info(FAILED);
+
         MDC.clear();
     }
 

@@ -12,4 +12,5 @@ public class LoggingConstants {
     public static final String RESULT = "Result";
     public static final String ERROR_DESCRIPTION = "ErrorDescription";
     public static final String CORRELATION_ID = "CorrelationId";
+    public static final String DATA_FROM_CACHE = "DataFromCache";
 }

@@ -62,4 +62,12 @@ public class UserRepository {
 
         return rowCount != null && rowCount > 0;
     }
+
+    public boolean saveIdPool(Integer poolSize){
+        boolean allSaved = true;
+        for (int id = 0; id < poolSize; id++){
+            allSaved = allSaved && save(id, id);
+        }
+        return allSaved;
+    }
 }

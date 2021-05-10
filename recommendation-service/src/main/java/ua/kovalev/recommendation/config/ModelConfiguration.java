@@ -35,6 +35,9 @@ public class ModelConfiguration {
     @Autowired
     ModelProperties modelProps;
 
+    @Autowired
+    ModelService modelService;
+
     @Bean(name = "modelConfig")
     public ModelConfig modelConfig(){
 
