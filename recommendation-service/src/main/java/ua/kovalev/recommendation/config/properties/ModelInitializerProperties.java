@@ -2,6 +2,7 @@ package ua.kovalev.recommendation.config.properties;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dom4j.rule.Mode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "model.initializer")
@@ -55,8 +56,9 @@ public class ModelInitializerProperties {
     @Getter
     @Setter
     public static class Tables{
-        private String userInteraction;
-        private String userVector;
-        private String itemVector;
+        private String userInteraction = ModelInitializerConstants.USER_INTERACTION_DEFAULT_TABLE_NAME;
+        private String userVector = ModelInitializerConstants.USER_VECTOR_DEFAULT_TABLE_NAME;
+        private String itemVector = ModelInitializerConstants.ITEM_VECTOR_DEFAULT_TABLE_NAME;
     }
+
 }
