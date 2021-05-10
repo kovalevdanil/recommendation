@@ -1,6 +1,8 @@
 package ua.kovalev.recommendation.utils;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import ua.kovalev.recommendation.model.domain.Item;
 import ua.kovalev.recommendation.model.request.Request;
@@ -58,5 +60,16 @@ public class ResponseConverter {
                         .build())
                 .build();
     }
+
+    public static Response createInternalServerErrorResponse(String errorDescription){
+        return Response.builder()
+                .techData(ResponseTechData.builder()
+                        .responseCode(ResponseCodes.INTERNAL_SERVER_ERROR)
+                        .errorDescription(errorDescription)
+                        .success(false)
+                        .build())
+                .build();
+    }
+
 
 }

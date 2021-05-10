@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import ua.kovalev.recommendation.api.RestEndpoint;
 import ua.kovalev.recommendation.model.request.Request;
 import ua.kovalev.recommendation.model.response.Response;
+import ua.kovalev.recommendation.model.response.ResponseCodes;
+import ua.kovalev.recommendation.model.response.ResponseTechData;
 import ua.kovalev.recommendation.service.ModelService;
 import ua.kovalev.recommendation.utils.RequestUtils;
 import ua.kovalev.recommendation.utils.ResponseConverter;
@@ -45,5 +47,13 @@ public class RecommendationRestEndpoint implements RestEndpoint{
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Response> handleException(Exception exception){
+        return new ResponseEntity<>(
+                ResponseConverter.createInternalServerErrorResponse(exception.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
     }
 }
