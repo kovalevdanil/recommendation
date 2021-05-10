@@ -11,6 +11,7 @@ databaseChangeLog:
                   type: int
                   constraints:
                     notNull: true
+                    unique: true
               - column:
                   name: outer_id
                   type: int

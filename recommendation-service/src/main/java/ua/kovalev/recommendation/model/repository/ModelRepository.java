@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class ModelRepository {
@@ -41,10 +42,6 @@ public class ModelRepository {
     @Value("${mapping.item-table:items}")
     private String itemTable;
 
-    @PostConstruct
-    public void init(){
-        // NOSONAR
-    }
 
     public boolean update(@NotNull EALSModel model, @NotNull Integer u, @NotNull Integer i){
         updateUser(model, u);
@@ -149,7 +146,7 @@ public class ModelRepository {
         return template.update("insert into " + userVectorTable + " values(?, ?)", u, byteVector) > 0;
     }
 
-    public boolean updateUserVector(Integer u, double[] vector){
+    private boolean updateUserVector(Integer u, double[] vector){
         byte[] byteVector = null;
         try {
             byteVector = SerializeUtils.serializeDoubleArray(vector);
@@ -171,7 +168,7 @@ public class ModelRepository {
         return template.update("insert into " + itemVectorTable + " values(?, ?)", i, byteVector) > 0;
     }
 
-    public boolean updateItemVector(Integer i, double[] vector){
+    private boolean updateItemVector(Integer i, double[] vector){
         byte[] byteVector = null;
         try {
             byteVector = SerializeUtils.serializeDoubleArray(vector);
@@ -183,31 +180,15 @@ public class ModelRepository {
     }
 
     private int getMaxUserId(){
-        Integer maxUserTable = template.queryForObject(String.format("select max(model_id) from %s", userTable), Integer.class);
-        Integer maxInteractionTable = template.queryForObject(String.format("select max(user_id) from %s", userInteractionTable), Integer.class);
-
-        if (maxUserTable == null){
-            return maxInteractionTable == null ? 0 : maxInteractionTable;
-        }
-
-        if (maxInteractionTable == null){
-            return maxUserTable;
-        }
+        Integer maxUserTable = Optional.ofNullable(template.queryForObject(String.format("select max(model_id) from %s", userTable), Integer.class)).orElse(0);
+        Integer maxInteractionTable = Optional.ofNullable(template.queryForObject(String.format("select max(user_id) from %s", userInteractionTable), Integer.class)).orElse(0);
 
         return Math.max(maxUserTable, maxInteractionTable);
     }
 
     private int getMaxItemId(){
-        Integer maxItemTable = template.queryForObject(String.format("select max(model_id) from %s", itemTable), Integer.class);
-        Integer maxInteractionTable = template.queryForObject(String.format("select max(item_id) from %s", userInteractionTable), Integer.class);
-
-        if (maxItemTable == null){
-            return maxInteractionTable == null ? 0 : maxInteractionTable;
-        }
-
-        if (maxInteractionTable == null){
-            return maxItemTable;
-        }
+        Integer maxItemTable = Optional.ofNullable(template.queryForObject(String.format("select max(model_id) from %s", itemTable), Integer.class)).orElse(0);
+        Integer maxInteractionTable = Optional.ofNullable(template.queryForObject(String.format("select max(item_id) from %s", userInteractionTable), Integer.class)).orElse(0);
 
         return Math.max(maxItemTable, maxInteractionTable);
     }
@@ -231,7 +212,7 @@ public class ModelRepository {
         return interactions;
     }
 
-    public DenseRealMatrix loadUserVectors(int factors){
+    private DenseRealMatrix loadUserVectors(int factors){
         int userCount = getMaxUserId() + 1;
 
         DenseRealMatrix U = new DenseRealMatrix(userCount, factors);

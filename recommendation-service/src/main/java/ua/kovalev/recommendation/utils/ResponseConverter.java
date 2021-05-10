@@ -77,11 +77,14 @@ public class ResponseConverter {
 
     public static boolean isDataFromCache(){
         return Optional.ofNullable(MDC.get(LoggingConstants.DATA_FROM_CACHE))
-                .map(Boolean::valueOf).orElse(false);
+                .map(Boolean::valueOf)
+                .orElse(Boolean.TRUE);
     }
 
     public static UUID correlationId(){
-        return UUID.fromString(MDC.get(LoggingConstants.CORRELATION_ID));
+        return Optional.ofNullable(MDC.get(LoggingConstants.CORRELATION_ID))
+                .map(UUID::fromString)
+                .orElse(null);
     }
 
 }

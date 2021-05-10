@@ -16,3 +16,6 @@ databaseChangeLog:
                   name: item_id
                   constraints:
                     notNull: true
+        - addUniqueConstraint:
+            tableName: user_item
+            columnNames: user_id, item_id

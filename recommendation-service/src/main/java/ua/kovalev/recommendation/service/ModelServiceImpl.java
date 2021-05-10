@@ -139,6 +139,7 @@ public class ModelServiceImpl implements ModelService {
                 .filter(item -> !OUTER_ID_NOT_FOUND_DEFAULT.equals(item))
                 .collect(Collectors.toList());
 
+        MDC.put(LoggingConstants.DATA_FROM_CACHE, "false");
         return ResponseConverter.createSuccessResponse(request, items);
     }
 }

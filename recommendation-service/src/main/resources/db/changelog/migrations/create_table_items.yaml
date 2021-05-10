@@ -10,6 +10,7 @@ databaseChangeLog:
                   name: model_id
                   type: int
                   constraints:
+                    unique: true
                     notNull: true
               - column:
                   name: outer_id
