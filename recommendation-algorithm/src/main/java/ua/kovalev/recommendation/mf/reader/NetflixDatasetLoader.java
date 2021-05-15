@@ -10,30 +10,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class NetflixRatingReader implements RatingReader{
+public class NetflixDatasetLoader implements DatasetLoader {
 
     private final String datasetName;
     private List<? extends DatasetFilter> filters;
 
-    public NetflixRatingReader(String datasetName){
-        this.datasetName = datasetName;
+    public NetflixDatasetLoader(String datasetName){
+        this(datasetName, null);
     }
 
-    public NetflixRatingReader(String datasetName, List<? extends DatasetFilter> filters){
+    public NetflixDatasetLoader(String datasetName, List<? extends DatasetFilter> filters){
         this.datasetName = datasetName;
-        this.filters = filters;
+        this.filters = filters == null ? Collections.emptyList() : filters ;
     }
 
 
     @Override
-    public Dataset read() throws IOException {
-        return read(-1);
+    public Dataset load() throws IOException {
+        return load(-1);
     }
 
     @Override
-    public Dataset read(int maxRatingCount) throws IOException {
+    public Dataset load(int maxRatingCount) throws IOException {
         List<Rating> ratings = new ArrayList<>();
         int userCount = 0, itemCount = 0;
 
@@ -66,16 +67,12 @@ public class NetflixRatingReader implements RatingReader{
 
         Dataset dataset = new Dataset(ratings, userCount + 1, itemCount + 1);
 
-        if (isFilterNeeded()){
-            filter(dataset);
-        }
+        filter(dataset);
 
         return dataset;
     }
 
     private void filter(Dataset dataset){
-        assert filters != null;
-
         for (DatasetFilter filter: filters){
             filter.filter(dataset);
         }

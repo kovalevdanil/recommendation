@@ -4,13 +4,12 @@ import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Dataset;
 import ua.kovalev.recommendation.mf.data.DatasetConstants;
-import ua.kovalev.recommendation.mf.data.Rating;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.filter.ActiveUsersDatasetFilter;
 import ua.kovalev.recommendation.mf.filter.DatasetFilter;
 import ua.kovalev.recommendation.mf.filter.ShrinkUsersDatasetFilter;
-import ua.kovalev.recommendation.mf.reader.NetflixRatingReader;
-import ua.kovalev.recommendation.mf.reader.RatingReader;
+import ua.kovalev.recommendation.mf.reader.NetflixDatasetLoader;
+import ua.kovalev.recommendation.mf.reader.DatasetLoader;
 import ua.kovalev.recommendation.mf.util.DatasetUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
@@ -35,8 +34,7 @@ public class Main {
             EALSConfig.LATENT_INIT_MEAN, 0.01d,
             EALSConfig.POPULARITY_SIGNIFICANCE, 0.4d,
             EALSConfig.MISSING_DATA_WEIGHT, 32d,
-            EALSConfig.NEW_ITEM_WEIGHT, 1e-4,
-            EALSConfig.TOP_K, 50
+            EALSConfig.NEW_ITEM_WEIGHT, 1e-4
     );
 
     public static void main(String[] args) throws IOException {
@@ -45,10 +43,10 @@ public class Main {
         DatasetFilter shrinkIdsFilter = new ShrinkUsersDatasetFilter();
 
         // read input data and perform filtering
-        RatingReader reader = new NetflixRatingReader(DatasetConstants.NETLFIX_DATASET, Arrays.asList(activeUsersFilter, shrinkIdsFilter));
+        DatasetLoader reader = new NetflixDatasetLoader(DatasetConstants.NETLFIX_DATASET, Arrays.asList(activeUsersFilter, shrinkIdsFilter));
 
         long startTimeMs = System.currentTimeMillis();
-        Dataset data = reader.read(RATING_COUNT);
+        Dataset data = reader.load(RATING_COUNT);
 
         System.out.println("Read in " + (System.currentTimeMillis() - startTimeMs) + " ms");
         System.out.println("User Count " + data.getUserCount());

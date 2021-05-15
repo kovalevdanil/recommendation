@@ -8,7 +8,7 @@ import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.filter.ActiveUsersDatasetFilter;
 import ua.kovalev.recommendation.mf.filter.DatasetFilter;
 import ua.kovalev.recommendation.mf.filter.ShrinkUsersDatasetFilter;
-import ua.kovalev.recommendation.mf.reader.NetflixRatingReader;
+import ua.kovalev.recommendation.mf.reader.NetflixDatasetLoader;
 import ua.kovalev.recommendation.mf.util.DatasetUtils;
 
 import java.io.IOException;
@@ -37,12 +37,12 @@ public class NetflixModelLoader implements ModelLoader{
             filters.add(new ShrinkUsersDatasetFilter());
         }
 
-        NetflixRatingReader reader = new NetflixRatingReader(DatasetConstants.NETLFIX_DATASET, filters);
+        NetflixDatasetLoader reader = new NetflixDatasetLoader(DatasetConstants.NETLFIX_DATASET, filters);
 
         Dataset dataset = null;
 
         try {
-            dataset = reader.read(props.getLoadItemCount());
+            dataset = reader.load(props.getLoadItemCount());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to load the model");

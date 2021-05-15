@@ -5,7 +5,7 @@ import ua.kovalev.recommendation.mf.data.Dataset;
 
 import java.io.IOException;
 
-public interface RatingReader {
-    Dataset read() throws IOException;
-    Dataset read(int maxRatingCount) throws IOException;
+public interface DatasetLoader {
+    Dataset load() throws IOException;
+    Dataset load(int maxRatingCount) throws IOException;
 }

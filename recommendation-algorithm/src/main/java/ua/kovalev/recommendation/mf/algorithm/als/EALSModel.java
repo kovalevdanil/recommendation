@@ -32,7 +32,11 @@ public class EALSModel extends Recommender {
     private final double latentInitMean;
     private final double latentInitDeviation;
 
-    private final Lock addLock = new ReentrantLock();
+    private final Lock addUserLock = new ReentrantLock();
+    private final Lock addItemLock = new ReentrantLock();
+    private final Lock UVLock = new ReentrantLock();
+    private final Lock updateUserLock = new ReentrantLock();
+    private final Lock updateItemLock = new ReentrantLock();
 
     @Getter
     private DenseRealMatrix U;
@@ -56,24 +60,6 @@ public class EALSModel extends Recommender {
     private double[] wUsers;
 
     private double newInteractionWeight;
-
-    public EALSModel(SparseRealMatrix trainMatrix,
-                     int maxIteration, int factors, double lambda, double latentInitMean, double latentInitDeviation,
-                     double alpha, double w0){
-        super(trainMatrix);
-        this.maxIterationsOffline = maxIteration;
-        this.factors = factors;
-        this.lambda = lambda;
-        this.latentInitMean = latentInitMean;
-        this.latentInitDeviation = latentInitDeviation;
-        this.w0 = w0;
-        this.maxIterationsOnline = 1;
-
-        initWeightMatrix();
-        initLatentMatrices();
-        initPopularityVector(alpha, w0);
-        initCache();
-    }
 
     public EALSModel(SparseRealMatrix trainMatrix, Map<String, Object> config){
         super(trainMatrix);
@@ -144,14 +130,14 @@ public class EALSModel extends Recommender {
     }
 
     private void initCache(){
-        predictionUsersCache = new double[(int)userCount];
-        predictionItemsCache = new double[(int)itemCount];
+        predictionUsersCache = new double[userCount];
+        predictionItemsCache = new double[itemCount];
 
-        ratingUsers = new double[(int) userCount];
-        ratingItems = new double[(int) itemCount];
+        ratingUsers = new double[userCount];
+        ratingItems = new double[itemCount];
 
-        wUsers = new double[(int) userCount];
-        wItems = new double[(int) itemCount];
+        wUsers = new double[userCount];
+        wItems = new double[itemCount];
 
         initSU();
         initSV();
@@ -195,7 +181,6 @@ public class EALSModel extends Recommender {
 
     @Override
     public double predict(int u, int i) {
-//        return U.getRow(u).multiply(V.getRow(i));
         double[] uRow = U.getRowRef(u);
         double[] iRow = V.getRowRef(i);
         int size = uRow.length;
@@ -243,11 +228,11 @@ public class EALSModel extends Recommender {
     }
 
     public List<Integer> getRecommendations(int u, int k, boolean excludeInteracted){
-        int itemPoolSize = (int) itemCount / 2;
+        int itemPoolSize = Math.min(itemCount / 2, k);
         Random rnd = new Random();
 
         Stream<Integer> itemPool = Stream
-                .generate(() -> rnd.nextInt((int)itemCount))
+                .generate(() -> rnd.nextInt(itemCount))
                 .limit(itemPoolSize).distinct();
 
         if (excludeInteracted){
@@ -272,6 +257,8 @@ public class EALSModel extends Recommender {
         if (itemList.size() == 0){
             return;
         }
+
+        updateUserLock.lock();
 
         for (int i : itemList){
             predictionItemsCache[i] = predict(u, i);
@@ -314,6 +301,8 @@ public class EALSModel extends Recommender {
             }
         }
 
+        updateUserLock.lock();
+
     }
 
     public void updateItem(int i){
@@ -321,6 +310,8 @@ public class EALSModel extends Recommender {
         if (userList.size() == 0){
             return;
         }
+
+        updateItemLock.lock();
 
         for (int u : userList) {
             predictionUsersCache[u] = predict(u, i);
@@ -359,15 +350,20 @@ public class EALSModel extends Recommender {
                 SV.setEntry(k, f, val);
             }
         }
+
+        updateItemLock.lock();
     }
 
     public synchronized int addUser(){
-
-        addLock.lock();
+        UVLock.lock();
 
         U.addRowInit(latentInitMean, latentInitDeviation);
         W.addRow();
         trainMatrix.addRow();
+
+        UVLock.unlock();
+
+        addUserLock.lock();
 
         predictionUsersCache = ArrayUtils.copyAndIncrementSize(predictionUsersCache);
         ratingUsers = ArrayUtils.copyAndIncrementSize(ratingUsers);
@@ -383,32 +379,35 @@ public class EALSModel extends Recommender {
 
         userCount++;
 
-        addLock.unlock();
+        addUserLock.unlock();
 
-        return (int) userCount - 1;
+        return userCount - 1;
     }
 
     public synchronized int addItem(){
-
-        addLock.lock();
+        UVLock.lock();
 
         V.addRowInit(latentInitMean, latentInitDeviation);
         W.addColumn();
         trainMatrix.addColumn();
+
+        UVLock.unlock();
+
+        addItemLock.lock();
 
         predictionItemsCache = ArrayUtils.copyAndIncrementSize(predictionItemsCache);
         ratingItems = ArrayUtils.copyAndIncrementSize(ratingItems);
         wItems = ArrayUtils.copyAndIncrementSize(wItems);
 
         C = ArrayUtils.copyAndIncrementSize(C);
-        C[(int) itemCount] = w0 / (itemCount + 1);
+        C[itemCount] = w0 / (itemCount + 1);
         itemCount++;
 
         initSV();
 
-        addLock.unlock();
+        addItemLock.unlock();
 
-        return (int) itemCount - 1;
+        return itemCount - 1;
     }
 
     private void updateItemCache(int i){
