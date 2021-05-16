@@ -122,7 +122,8 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    @Cacheable(value = "recommendations", key = "#request.businessData.user.id",
+    @Cacheable(value = "recommendations",
+            key = "new org.springframework.cache.interceptor.SimpleKey(#request.businessData.user.id, #request.businessData.excludeInteracted)",
             condition = "not #request.techData.disableCacheWrites",
             unless = "#request.techData.disableCacheWrites")
     public Response recommendations(Request request) {

@@ -16,6 +16,7 @@ import ua.kovalev.recommendation.mf.util.VectorUtils;
 import ua.kovalev.recommendation.utils.SerializeUtils;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class ModelRepository {
     private String itemTable;
 
 
+    @Transactional
     public boolean update(@NotNull EALSModel model, @NotNull Integer u, @NotNull Integer i){
         updateUser(model, u);
         updateItem(model, i);

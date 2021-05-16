@@ -21,7 +21,7 @@ spring:
     port: 6379
   cache:
     redis:
-      time-to-live: 5s
+      time-to-live: 20s
 
 model:
   regularization-parameter: 0.5

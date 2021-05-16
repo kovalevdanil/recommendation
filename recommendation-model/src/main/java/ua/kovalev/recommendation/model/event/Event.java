@@ -1,9 +1,13 @@
 package ua.kovalev.recommendation.model.event;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -12,7 +16,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Event {
     private String sender;
-    private LocalDate timestamp;
+    private LocalDateTime timestamp;
     private String type;
 
     private JsonNode data;
