@@ -122,7 +122,9 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    @Cacheable(value = "recommendations", key = "#request.businessData.user.id", unless = "#request.techData.disableCache")
+    @Cacheable(value = "recommendations", key = "#request.businessData.user.id",
+            condition = "not #request.techData.disableCacheWrites",
+            unless = "#request.techData.disableCacheWrites")
     public Response recommendations(Request request) {
         Integer outerId = request.getBusinessData().getUser().getId();
 

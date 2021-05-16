@@ -13,5 +13,6 @@ import java.util.UUID;
 @Builder
 public class RequestTechData {
     private UUID correlationId;
-    private Boolean disableCache;
+    private Boolean disableCacheReads = false;
+    private Boolean disableCacheWrites = false;
 }

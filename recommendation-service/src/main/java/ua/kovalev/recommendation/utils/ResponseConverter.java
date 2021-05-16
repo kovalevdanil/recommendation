@@ -58,7 +58,7 @@ public class ResponseConverter {
                 .techData(ResponseTechData.builder()
                         .responseCode(ResponseCodes.OK)
                         .correlationId(request.getTechData().getCorrelationId())
-                        .fromCache(!request.getTechData().getDisableCache())
+                        .fromCache(!request.getTechData().getDisableCacheReads())
                         .success(true)
                         .build())
                 .build();

@@ -20,8 +20,12 @@ public class RequestUtils {
         if (techData.getCorrelationId() == null) {
             techData.setCorrelationId(UUID.randomUUID());
         }
-        if (techData.getDisableCache() == null){
-            techData.setDisableCache(false);
+        if (techData.getDisableCacheReads() == null){
+            techData.setDisableCacheReads(false);
+        }
+
+        if (techData.getDisableCacheWrites() == null){
+            techData.setDisableCacheWrites(false);
         }
     }
 
