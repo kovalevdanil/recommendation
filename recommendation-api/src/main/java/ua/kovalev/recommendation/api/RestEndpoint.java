@@ -16,5 +16,5 @@ public interface RestEndpoint {
             produces = APPLICATION_JSON_VALUE,
             consumes = APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Response> getRecommendations(@RequestBody Request request);
+    ResponseEntity<Response> recommendations(@RequestBody Request request);
 }

@@ -29,7 +29,7 @@ public class RecommendationRestEndpoint implements RestEndpoint{
     }
 
     @Override
-    public ResponseEntity<Response> getRecommendations(@NonNull @RequestBody Request request) {
+    public ResponseEntity<Response> recommendations(@NonNull @RequestBody Request request) {
         RequestUtils.normalizeRequest(request);
 
         Errors errors = new BeanPropertyBindingResult(request, "request");

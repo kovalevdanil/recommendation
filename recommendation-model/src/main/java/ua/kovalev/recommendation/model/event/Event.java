@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class Event {
     private String sender;
     private LocalDate timestamp;
-    private EventType type;
+    private String type;
 
     private JsonNode data;
 }

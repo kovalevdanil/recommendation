@@ -13,13 +13,14 @@ import ua.kovalev.recommendation.model.event.Key;
 
 import javax.annotation.PostConstruct;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Component
 public class EventListener {
 
-    private Map<EventType, EventHandler> eventTypeHandlerMap;
+    private Map<String, EventHandler> eventTypeHandlerMap;
 
     @Autowired
     @Qualifier("userCreatedEventHandler")
@@ -35,7 +36,7 @@ public class EventListener {
 
     @PostConstruct
     public void init(){
-        EnumMap<EventType, EventHandler>  map = new EnumMap<>(EventType.class);
+        Map<String, EventHandler> map = new HashMap<>();
 
         map.put(EventType.USER_CREATED, userCreatedEventHandler);
         map.put(EventType.ITEM_CREATED, itemCreatedEventHandler);
@@ -47,16 +48,15 @@ public class EventListener {
     @KafkaListener(containerFactory = "containerFactory", topics = "${kafka.topic.event-topic}", errorHandler = "eventListenerLogErrorHandler")
     public void handleEvent(ConsumerRecord<Key, Event> record){
         log.info("Kafka record: {}", record.toString());
-
         EventHandler handler = getHandler(record.value().getType());
         if (handler == null){
-            throw new RuntimeException("Handler for event " +  record.value().getType() + " was not found");
+            throw new RuntimeException("Handler for event '" +  record.value().getType() + "' was not found");
         }
 
         handler.handle(record.value().getData());
     }
 
-    private EventHandler getHandler(EventType type){
+    private EventHandler getHandler(String type){
         return eventTypeHandlerMap.get(type);
     }
 }
