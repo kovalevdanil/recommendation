@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class NetflixModelLoader implements ModelLoader{
 
@@ -30,7 +31,8 @@ public class NetflixModelLoader implements ModelLoader{
         List<DatasetFilter> filters = new ArrayList<>();
 
         if (props.getUserInteractionThreshold() != null){
-            filters.add(new ActiveUsersDatasetFilter(props.getUserInteractionThreshold()));
+            int threshold = Optional.ofNullable(props.getUserInteractionThreshold()).orElse(-1);
+            filters.add(new ActiveUsersDatasetFilter(threshold));
         }
 
         if (props.getShrinkUsers()){
@@ -39,8 +41,7 @@ public class NetflixModelLoader implements ModelLoader{
 
         NetflixDatasetLoader reader = new NetflixDatasetLoader(DatasetConstants.NETLFIX_DATASET, filters);
 
-        Dataset dataset = null;
-
+        Dataset dataset;
         try {
             dataset = reader.load(props.getLoadItemCount());
         } catch (IOException e) {
@@ -49,7 +50,6 @@ public class NetflixModelLoader implements ModelLoader{
         }
 
         SparseRealMatrix matrix = DatasetUtils.buildDatasetMatrix(dataset);
-
         return new EALSModel(matrix, config);
     }
 }
