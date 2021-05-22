@@ -1,9 +1,15 @@
 package ua.kovalev.recommendation.mf.datastructure;
 
+import lombok.Getter;
+import lombok.ToString;
+
 import java.util.Objects;
 
+@ToString(of = {"first", "second"})
 public class Pair<F, S> {
+    @Getter
     public final F first;
+    @Getter
     public final S second;
 
     public Pair(F first, S second) {

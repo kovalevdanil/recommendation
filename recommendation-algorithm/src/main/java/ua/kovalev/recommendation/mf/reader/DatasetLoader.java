@@ -7,5 +7,5 @@ import java.io.IOException;
 
 public interface DatasetLoader {
     Dataset load() throws IOException;
-    Dataset load(int maxRatingCount) throws IOException;
+    Dataset load(int maxInteractionCount) throws IOException;
 }

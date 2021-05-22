@@ -2,7 +2,7 @@ package ua.kovalev.recommendation.mf.filter;
 
 
 import ua.kovalev.recommendation.mf.data.Dataset;
-import ua.kovalev.recommendation.mf.data.Rating;
+import ua.kovalev.recommendation.mf.data.Interaction;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,21 +12,21 @@ public class ShrinkUsersDatasetFilter implements DatasetFilter{
     @Override
     public void filter(Dataset dataset) {
         assert dataset != null;
-        assert dataset.getRatings() != null;
+        assert dataset.getInteractions() != null;
 
         Map<Integer, Integer> newUserIds = new HashMap<>();
-        List<Rating> ratings = dataset.getRatings();
+        List<Interaction> interactions = dataset.getInteractions();
 
         int lastUserId = 0;
 
-        for (Rating rating: ratings) {
-            if (!newUserIds.containsKey(rating.getUserId())){
-                newUserIds.put(rating.getUserId(), lastUserId++);
+        for (Interaction interaction : interactions) {
+            if (!newUserIds.containsKey(interaction.getUserId())){
+                newUserIds.put(interaction.getUserId(), lastUserId++);
             }
         }
 
-        for (Rating rating : ratings){
-            rating.setUserId(newUserIds.get(rating.getUserId()));
+        for (Interaction interaction : interactions){
+            interaction.setUserId(newUserIds.get(interaction.getUserId()));
         }
 
         dataset.setUserCount(lastUserId);

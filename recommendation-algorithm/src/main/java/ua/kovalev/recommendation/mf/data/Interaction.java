@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode
-public class Rating {
+public class Interaction {
     private int userId;
     private int itemId;
 }

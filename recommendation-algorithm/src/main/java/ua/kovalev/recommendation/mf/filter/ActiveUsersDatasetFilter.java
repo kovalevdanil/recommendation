@@ -1,7 +1,7 @@
 package ua.kovalev.recommendation.mf.filter;
 
 import ua.kovalev.recommendation.mf.data.Dataset;
-import ua.kovalev.recommendation.mf.data.Rating;
+import ua.kovalev.recommendation.mf.data.Interaction;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,25 +19,25 @@ public class ActiveUsersDatasetFilter implements DatasetFilter{
     @Override
     public void filter(Dataset dataset) {
         assert dataset != null;
-        assert dataset.getRatings() != null;
+        assert dataset.getInteractions() != null;
 
-        List<Rating> filteredRatings = null;
-        List<Rating> ratings = dataset.getRatings();
+        List<Interaction> filteredInteractions = null;
+        List<Interaction> interactions = dataset.getInteractions();
 
         Map<Integer, Integer> userInteractions = new HashMap<>();
 
-        for (Rating rating: ratings){
+        for (Interaction interaction : interactions){
             userInteractions
-                    .compute(rating.getUserId(), (k, v) -> (v == null ? 0 : v) + 1);
+                    .compute(interaction.getUserId(), (k, v) -> (v == null ? 0 : v) + 1);
         }
 
-        filteredRatings = ratings.stream()
-                    .filter(rating -> userInteractions.get(rating.getUserId()) >= minInteractionsNumber)
+        filteredInteractions = interactions.stream()
+                    .filter(inter -> userInteractions.get(inter.getUserId()) >= minInteractionsNumber)
                     .collect(Collectors.toList());
 
-        int userCount = filteredRatings.stream().map(Rating::getUserId).max(Integer::compareTo).orElse(0);
+        int userCount = filteredInteractions.stream().map(Interaction::getUserId).max(Integer::compareTo).orElse(0);
 
         dataset.setUserCount(userCount);
-        dataset.setRatings(filteredRatings);
+        dataset.setInteractions(filteredInteractions);
     }
 }

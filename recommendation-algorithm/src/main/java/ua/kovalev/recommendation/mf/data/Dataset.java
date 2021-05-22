@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Dataset {
-    private List<Rating> ratings;
+    private List<Interaction> interactions;
     private int userCount;
     private int itemCount;
 }

@@ -2,7 +2,7 @@ package ua.kovalev.recommendation.mf.reader;
 
 
 import ua.kovalev.recommendation.mf.data.Dataset;
-import ua.kovalev.recommendation.mf.data.Rating;
+import ua.kovalev.recommendation.mf.data.Interaction;
 import ua.kovalev.recommendation.mf.filter.DatasetFilter;
 
 import java.io.BufferedReader;
@@ -34,8 +34,8 @@ public class NetflixDatasetLoader implements DatasetLoader {
     }
 
     @Override
-    public Dataset load(int maxRatingCount) throws IOException {
-        List<Rating> ratings = new ArrayList<>();
+    public Dataset load(int maxInteractionCount) throws IOException {
+        List<Interaction> interactions = new ArrayList<>();
         int userCount = 0, itemCount = 0;
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(getStream(datasetName)));
@@ -55,17 +55,17 @@ public class NetflixDatasetLoader implements DatasetLoader {
                 int userId = Integer.parseInt(row[0]);
 
                 userCount = Math.max(userId, userCount);
-                ratings.add(new Rating(userId, currentItem));
+                interactions.add(new Interaction(userId, currentItem));
 
                 count++;
             }
 
-            if (maxRatingCount > 0 && count >= maxRatingCount){
+            if (maxInteractionCount > 0 && count >= maxInteractionCount){
                 break;
             }
         }
 
-        Dataset dataset = new Dataset(ratings, userCount + 1, itemCount + 1);
+        Dataset dataset = new Dataset(interactions, userCount + 1, itemCount + 1);
 
         filter(dataset);
 

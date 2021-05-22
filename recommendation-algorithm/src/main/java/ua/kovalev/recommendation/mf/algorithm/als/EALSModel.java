@@ -11,9 +11,9 @@ import ua.kovalev.recommendation.mf.util.ArrayUtils;
 import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -143,11 +143,11 @@ public class EALSModel extends Recommender {
         initSV();
     }
 
-    public void initSU(){
+    private void initSU(){
         SU = MatrixUtils.multiplyDense(U.transpose(), U);
     }
 
-    public void initSV(){
+    private void initSV(){
         SV = new DenseRealMatrix(factors, factors);
         for (int f = 0; f < factors; f++){
             for (int k = 0; k <= f; k++){
@@ -228,12 +228,11 @@ public class EALSModel extends Recommender {
     }
 
     public List<Integer> getRecommendations(int u, int k, boolean excludeInteracted){
-        int itemPoolSize = Math.min(itemCount / 2, k);
-        Random rnd = new Random();
+        int itemPoolSize = itemCount;
 
         Stream<Integer> itemPool = Stream
-                .generate(() -> rnd.nextInt(itemCount))
-                .limit(itemPoolSize).distinct();
+                .iterate(0, i -> i + 1)
+                .limit(itemPoolSize);
 
         if (excludeInteracted){
             List<Integer> interacted = VectorUtils.getIndexList(trainMatrix.getRowRef(u));
@@ -241,13 +240,16 @@ public class EALSModel extends Recommender {
         }
 
         return itemPool
-                .map(i -> new Pair<>(i, predict(u, i)))
-                .sorted((p1, p2) -> {
-                    Double delta1 = Math.abs(p1.second - 1),
-                            delta2 = Math.abs(p2.second - 1);
-                    return delta1.compareTo(delta2);
-                })
-                .limit(k).map(p -> p.first)
+//                .map(i -> new Pair<>(i, predict(u, i)))
+//                .sorted((p1, p2) -> {
+//                    Double delta1 = Math.abs(p1.second - 1),
+//                            delta2 = Math.abs(p2.second - 1);
+//                    return delta1.compareTo(delta2);
+//                })
+                .map(i -> new Pair<>(i, VectorUtils.euclideanDistance(U.getRowRef(u), V.getRowRef(i))))
+                .sorted(Comparator.comparing(Pair::getSecond))
+                .limit(k)
+                .map(p -> p.first)
                 .collect(Collectors.toList());
     }
 

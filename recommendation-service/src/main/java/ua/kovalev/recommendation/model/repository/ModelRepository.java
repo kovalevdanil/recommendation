@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
 import ua.kovalev.recommendation.mf.data.Dataset;
-import ua.kovalev.recommendation.mf.data.Rating;
+import ua.kovalev.recommendation.mf.data.Interaction;
 import ua.kovalev.recommendation.mf.datastructure.matrix.DenseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 import ua.kovalev.recommendation.mf.datastructure.vector.DenseRealVector;
@@ -15,7 +15,6 @@ import ua.kovalev.recommendation.mf.util.DatasetUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 import ua.kovalev.recommendation.utils.SerializeUtils;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -196,7 +195,7 @@ public class ModelRepository {
     }
 
     private Dataset loadDataset(){
-        List<Rating> interactions = loadRatings();
+        List<Interaction> interactions = loadInteractions();
 
         int userCount = getMaxUserId() + 1;
         int itemCount = getMaxItemId() + 1;
@@ -204,11 +203,11 @@ public class ModelRepository {
         return new Dataset(interactions, userCount, itemCount);
     }
 
-    private List<Rating> loadRatings(){
-        List<Rating> interactions = new ArrayList<>();
+    private List<Interaction> loadInteractions(){
+        List<Interaction> interactions = new ArrayList<>();
 
         template.query("select user_id, item_id from " + userInteractionTable, (rs) -> {
-            interactions.add(new Rating(rs.getInt(1), rs.getInt(2)));
+            interactions.add(new Interaction(rs.getInt(1), rs.getInt(2)));
         });
 
         return interactions;

@@ -2,7 +2,6 @@ package ua.kovalev.recommendation.mf.algorithm;
 
 
 import lombok.Getter;
-import ua.kovalev.recommendation.mf.data.Rating;
 import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 
 import java.util.List;

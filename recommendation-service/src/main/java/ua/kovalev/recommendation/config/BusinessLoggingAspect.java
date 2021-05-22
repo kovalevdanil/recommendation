@@ -29,10 +29,10 @@ public class BusinessLoggingAspect {
     public Object before(ProceedingJoinPoint joinPoint) throws Throwable {
 
         String methodName = joinPoint.getStaticPart().getSignature().getName();
+        MDC.put(ACTION_NAME, methodName);
 
         log.info("Service method invoked '{}'", methodName);
 
-        MDC.put(ACTION_NAME, methodName);
         Object[] args = joinPoint.getArgs();
 
         if (args != null && args.length > 0){

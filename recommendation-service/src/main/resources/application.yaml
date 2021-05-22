@@ -35,19 +35,21 @@ model:
   new-item-weight: 0.5
 
   initializer:
-#    source: NETFLIX
-    source: DATABASE
-#    train: true
-#    user-interaction-threshold: 0
-#    load-item-count: 10000
-#    shrink-users: true
+    source: NETFLIX
+#    source: DATABASE
+    train: true
+    user-interaction-threshold: 0
+    load-item-count: 10000
+    shrink-users: true
 
     tables:
       user-interaction: user_item
       user-vector: user_vectors
       item-vector: item_vectors
+
     save-after-build: true
     save-after-update: true
+
     save-user-id-pool: false
     save-item-id-pool: true
 
