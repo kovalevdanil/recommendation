@@ -1,4 +1,4 @@
-package ua.kovalev.recommendation.model.loader;
+package ua.kovalev.recommendation.alsmodel.loader;
 
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
 

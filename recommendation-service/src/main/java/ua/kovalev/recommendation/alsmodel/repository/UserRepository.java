@@ -1,4 +1,4 @@
-package ua.kovalev.recommendation.model.repository;
+package ua.kovalev.recommendation.alsmodel.repository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -7,12 +7,13 @@ import javax.transaction.Transactional;
 
 @Repository
 @Transactional
-public class ItemRepository extends MappingRepository {
-    @Value("${mapping.item-table:items}")
-    private String itemTable;
+public class UserRepository extends MappingRepository {
+
+    @Value("${mapping.user-table:users}")
+    private String userTable;
 
     @Override
     protected String getTableName() {
-        return itemTable;
+        return userTable;
     }
 }

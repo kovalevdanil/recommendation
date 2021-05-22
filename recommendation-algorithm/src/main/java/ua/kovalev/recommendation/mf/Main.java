@@ -68,7 +68,7 @@ public class Main {
         }
 
         startTimeMs = System.currentTimeMillis();
-        SparseRealMatrix trainMatrix = DatasetUtils.buildDatasetMatrix(data);
+        SparseRealMatrix trainMatrix = DatasetUtils.buildInteractionMatrix(data);
         System.out.println("Train Matrix is built in " + (System.currentTimeMillis() - startTimeMs) + " ms");
 
         EALSModel model = new EALSModel(trainMatrix, config);

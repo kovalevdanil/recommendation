@@ -240,13 +240,7 @@ public class EALSModel extends Recommender {
         }
 
         return itemPool
-//                .map(i -> new Pair<>(i, predict(u, i)))
-//                .sorted((p1, p2) -> {
-//                    Double delta1 = Math.abs(p1.second - 1),
-//                            delta2 = Math.abs(p2.second - 1);
-//                    return delta1.compareTo(delta2);
-//                })
-                .map(i -> new Pair<>(i, VectorUtils.euclideanDistance(U.getRowRef(u), V.getRowRef(i))))
+                .map(i -> Pair.of(i, VectorUtils.euclideanDistance(U.getRowRef(u), V.getRowRef(i))))
                 .sorted(Comparator.comparing(Pair::getSecond))
                 .limit(k)
                 .map(p -> p.first)

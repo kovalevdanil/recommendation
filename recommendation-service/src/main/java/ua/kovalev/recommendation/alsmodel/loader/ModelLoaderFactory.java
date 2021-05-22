@@ -1,4 +1,4 @@
-package ua.kovalev.recommendation.model.loader;
+package ua.kovalev.recommendation.alsmodel.loader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

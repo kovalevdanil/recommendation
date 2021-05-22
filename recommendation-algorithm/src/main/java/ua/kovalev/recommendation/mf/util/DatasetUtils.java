@@ -8,7 +8,7 @@ import ua.kovalev.recommendation.mf.datastructure.matrix.SparseRealMatrix;
 @UtilityClass
 public class DatasetUtils {
 
-    public static SparseRealMatrix buildDatasetMatrix(Dataset dataset){
+    public static SparseRealMatrix buildInteractionMatrix(Dataset dataset){
         SparseRealMatrix trainMatrix = new SparseRealMatrix(dataset.getUserCount(), dataset.getItemCount());
 
         for (Interaction interaction : dataset.getInteractions()){

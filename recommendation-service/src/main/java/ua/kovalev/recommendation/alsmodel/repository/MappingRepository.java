@@ -1,4 +1,4 @@
-package ua.kovalev.recommendation.model.repository;
+package ua.kovalev.recommendation.alsmodel.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

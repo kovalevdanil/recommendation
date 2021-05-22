@@ -8,10 +8,10 @@ import ua.kovalev.recommendation.config.properties.ModelConfig;
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.config.properties.ModelProperties;
 import ua.kovalev.recommendation.mf.algorithm.als.config.EALSConfig;
-import ua.kovalev.recommendation.model.loader.DatabaseModelLoader;
-import ua.kovalev.recommendation.model.loader.ModelLoader;
-import ua.kovalev.recommendation.model.loader.NetflixModelLoader;
-import ua.kovalev.recommendation.model.repository.ModelRepository;
+import ua.kovalev.recommendation.alsmodel.loader.DatabaseModelLoader;
+import ua.kovalev.recommendation.alsmodel.loader.ModelLoader;
+import ua.kovalev.recommendation.alsmodel.loader.NetflixModelLoader;
+import ua.kovalev.recommendation.alsmodel.repository.ModelRepository;
 
 import java.util.HashMap;
 import java.util.Map;

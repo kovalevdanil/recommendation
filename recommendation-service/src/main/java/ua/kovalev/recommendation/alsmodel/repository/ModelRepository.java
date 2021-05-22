@@ -1,4 +1,4 @@
-package ua.kovalev.recommendation.model.repository;
+package ua.kovalev.recommendation.alsmodel.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,7 +74,7 @@ public class ModelRepository {
         assert config.containsKey(EALSConfig.FACTORS);
 
         Dataset dataset = loadDataset();
-        SparseRealMatrix interactionMatrix = DatasetUtils.buildDatasetMatrix(dataset);
+        SparseRealMatrix interactionMatrix = DatasetUtils.buildInteractionMatrix(dataset);
 
         int factors = (int) config.get(EALSConfig.FACTORS);
         DenseRealMatrix U = loadUserVectors(factors);
@@ -92,7 +92,7 @@ public class ModelRepository {
      */
     public EALSModel loadRaw(Map<String, Object> config){
         Dataset dataset = loadDataset();
-        SparseRealMatrix interactionMatrix = DatasetUtils.buildDatasetMatrix(dataset);
+        SparseRealMatrix interactionMatrix = DatasetUtils.buildInteractionMatrix(dataset);
         return new EALSModel(interactionMatrix, config);
     }
 

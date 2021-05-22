@@ -1,8 +1,8 @@
-package ua.kovalev.recommendation.model.loader;
+package ua.kovalev.recommendation.alsmodel.loader;
 
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
-import ua.kovalev.recommendation.model.repository.ModelRepository;
+import ua.kovalev.recommendation.alsmodel.repository.ModelRepository;
 
 import java.util.Map;
 

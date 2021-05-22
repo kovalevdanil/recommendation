@@ -1,4 +1,4 @@
-package ua.kovalev.recommendation.model.loader;
+package ua.kovalev.recommendation.alsmodel.loader;
 
 import ua.kovalev.recommendation.config.properties.ModelInitializerProperties;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
@@ -49,7 +49,7 @@ public class NetflixModelLoader implements ModelLoader{
             throw new RuntimeException("Unable to load the model");
         }
 
-        SparseRealMatrix matrix = DatasetUtils.buildDatasetMatrix(dataset);
+        SparseRealMatrix matrix = DatasetUtils.buildInteractionMatrix(dataset);
         return new EALSModel(matrix, config);
     }
 }
