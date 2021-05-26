@@ -21,26 +21,26 @@ spring:
     port: 6379
   cache:
     redis:
-      time-to-live: 20s
+      time-to-live: 5s
 
 model:
-  regularization-parameter: 0.5
+  regularization-parameter: 0.1
   factors: 32
   offline-iterations: 10
-  online-iterations: 1
+  online-iterations: 3
   latent-init-mean: 0
   latent-init-deviation: 0.01
-  popularity-significance: 0.4
-  missing-data-weight: 32
+  popularity-significance: 0.3
+  missing-data-weight: 10
   new-item-weight: 0.5
 
   initializer:
-    source: NETFLIX
-#    source: DATABASE
-    train: true
-    user-interaction-threshold: 0
-    load-item-count: 10000
-    shrink-users: true
+#    source: NETFLIX
+    source: DATABASE
+#    train: true
+#    user-interaction-threshold: 0
+#    load-item-count: 10000
+#    shrink-users: true
 
     tables:
       user-interaction: user_item

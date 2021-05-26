@@ -11,6 +11,7 @@ import ua.kovalev.recommendation.mf.util.ArrayUtils;
 import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -211,19 +212,17 @@ public class EALSModel extends Recommender {
 
     @Override
     public void updateModel(int u, int i) {
-        if (trainMatrix.getEntry(u, i) == 0){
-            trainMatrix.setEntry(u, i, 1);
-            W.setEntry(u, i, newInteractionWeight);
+        trainMatrix.setEntry(u, i, 1);
+        W.setEntry(u, i, newInteractionWeight);
 
-            if (C[i] == 0){
-                C[i] = w0 / itemCount;
-                updateItemCache(i);
-            }
+        if (C[i] == 0){
+            C[i] = w0 / itemCount;
+            updateItemCache(i);
+        }
 
-            for (int j = 0; j < maxIterationsOnline; j++){
-                updateUser(u);
-                updateItem(i);
-            }
+        for (int j = 0; j < maxIterationsOnline; j++){
+            updateUser(u);
+            updateItem(i);
         }
     }
 

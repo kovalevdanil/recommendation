@@ -2,6 +2,7 @@ package ua.kovalev.recommendation.alsmodel.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ua.kovalev.recommendation.mf.algorithm.als.EALSModel;
@@ -47,7 +48,7 @@ public class ModelRepository {
     public boolean update(@NotNull EALSModel model, @NotNull Integer u, @NotNull Integer i){
         updateUser(model, u);
         updateItem(model, i);
-        return template.update("insert into " + userInteractionTable + " values (?, ?)", u, i) > 0;
+        return interactionExists(u, i) || template.update("insert into " + userInteractionTable + " values (?, ?)", u, i) > 0;
     }
 
     public boolean saveItem(@NotNull EALSModel model, @NotNull Integer i){
@@ -249,5 +250,14 @@ public class ModelRepository {
         });
 
         return V;
+    }
+
+    private boolean interactionExists(Integer userId, Integer itemId) {
+        Integer rowCount = DataAccessUtils.singleResult(
+                template.query("select count(*) from " + userInteractionTable + " where  user_id = ? and item_id = ?",
+                        (r, num) -> r.getInt(1), userId, itemId)
+        );
+
+        return rowCount != null && rowCount > 0;
     }
 }
