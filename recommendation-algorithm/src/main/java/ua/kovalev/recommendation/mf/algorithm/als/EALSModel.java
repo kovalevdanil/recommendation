@@ -11,7 +11,6 @@ import ua.kovalev.recommendation.mf.util.ArrayUtils;
 import ua.kovalev.recommendation.mf.util.MatrixUtils;
 import ua.kovalev.recommendation.mf.util.VectorUtils;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,7 @@ public class EALSModel extends Recommender {
     private SparseRealMatrix W;
 
     private double[] C;
-    private double w0;
+    private double c0;
 
     /**
      * Caches
@@ -73,7 +72,7 @@ public class EALSModel extends Recommender {
         this.newInteractionWeight = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 0.1);
         this.maxIterationsOnline = (int) config.getOrDefault(EALSConfig.ONLINE_ITERATIONS, 1);
 
-        double c0 = (double) config.getOrDefault(EALSConfig.MISSING_DATA_WEIGHT, 512);
+        c0 = (double) config.getOrDefault(EALSConfig.MISSING_DATA_WEIGHT, 512);
         double alpha = (double) config.getOrDefault(EALSConfig.POPULARITY_SIGNIFICANCE, 0.4);
 
         initWeightMatrix();
@@ -89,11 +88,12 @@ public class EALSModel extends Recommender {
         this.factors = (int) config.getOrDefault(EALSConfig.FACTORS, 16);
         this.lambda = (double) config.getOrDefault(EALSConfig.REGULARIZATION_PARAMETER, 0.01);
         this.latentInitDeviation = (double) config.getOrDefault(EALSConfig.LATENT_INIT_DEVIATION, 0.01);
-        this.latentInitMean = (double) config.getOrDefault(EALSConfig.LATENT_INIT_MEAN, 0.01);
-        this.w0 = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 1e-4);
+        this.latentInitMean = (double) config.getOrDefault(EALSConfig.LATENT_INIT_MEAN, 0.0d);
+        this.newInteractionWeight = (double) config.getOrDefault(EALSConfig.NEW_ITEM_WEIGHT, 1);
         this.maxIterationsOnline = (int) config.getOrDefault(EALSConfig.ONLINE_ITERATIONS, 1);
 
         double alpha = (double) config.getOrDefault(EALSConfig.POPULARITY_SIGNIFICANCE, 0.4);
+        c0 = (double) config.getOrDefault(EALSConfig.MISSING_DATA_WEIGHT, 512);
 
         this.U = U;
         this.V = V;
@@ -104,7 +104,7 @@ public class EALSModel extends Recommender {
         assert V.getRowCount() == trainMatrix.getColumnCount();
 
         initWeightMatrix();
-        initPopularityVector(alpha, w0);
+        initPopularityVector(alpha, c0);
         initCache();
     }
 
@@ -216,7 +216,7 @@ public class EALSModel extends Recommender {
         W.setEntry(u, i, newInteractionWeight);
 
         if (C[i] == 0){
-            C[i] = w0 / itemCount;
+            C[i] = c0 / itemCount;
             updateItemCache(i);
         }
 
@@ -395,7 +395,7 @@ public class EALSModel extends Recommender {
         wItems = ArrayUtils.copyAndIncrementSize(wItems);
 
         C = ArrayUtils.copyAndIncrementSize(C);
-        C[itemCount] = w0 / (itemCount + 1);
+        C[itemCount] = c0 / (itemCount + 1);
         itemCount++;
 
         initSV();
