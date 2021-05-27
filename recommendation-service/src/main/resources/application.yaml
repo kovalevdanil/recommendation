@@ -1,0 +1,65 @@
+server:
+  port: 8000
+  error:
+    include-message: always
+    include-stacktrace: never
+    include-binding-errors: always
+
+spring:
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  liquibase:
+    enabled: true
+    liquibase-schema: liquibase
+  jpa:
+    hibernate:
+      ddl-auto: none
+  redis:
+    host: localhost
+    port: 6379
+  cache:
+    redis:
+      time-to-live: 5s
+
+model:
+  regularization-parameter: 0.1
+  factors: 32
+  offline-iterations: 10
+  online-iterations: 3
+  latent-init-mean: 0
+  latent-init-deviation: 0.01
+  popularity-significance: 0.3
+  missing-data-weight: 10
+  new-item-weight: 0.5
+
+  initializer:
+#    source: NETFLIX
+    source: DATABASE
+#    train: true
+#    user-interaction-threshold: 0
+#    load-item-count: 10000
+#    shrink-users: true
+
+    tables:
+      user-interaction: user_item
+      user-vector: user_vectors
+      item-vector: item_vectors
+
+    save-after-build: true
+    save-after-update: true
+
+    save-user-id-pool: false
+    save-item-id-pool: true
+
+kafka:
+  topic:
+    event-topic: recommendation-event
+  consumer:
+    group-id: recommendation-service-group
+    client-id: recommendation-client
+    bootstrap-server: localhost:9092
+    commit-interval: 5
+    poll-interval: 1000
+    session-timeout: 30000

@@ -1,0 +1,24 @@
+<configuration>
+    <appender name="businessOperationAppender" class="ch.qos.logback.core.FileAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X] - %msg%n</pattern>
+        </encoder>
+        <file>logs/business.log</file>
+        <append>true</append>
+        <immediateFlush>true</immediateFlush>
+    </appender>
+
+    <appender name = "STDOUT" class = "ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <logger name = "businessOperationLogger">
+        <appender-ref ref = "businessOperationAppender" />
+    </logger>
+</configuration>

@@ -2,11 +2,17 @@ plugins {
     id 'java'
 }
 
-group 'ua.kovalev'
+//group 'ua.kovalev'
 version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
+    implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+
 }
 
 jar {

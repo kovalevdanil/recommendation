@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5
+      author: dkovalev
+      changes:
+        - createTable:
+            tableName: item_vectors
+            columns:
+              - column:
+                  name: item_id
+                  type: INT
+                  constraints:
+                    foreignKey: true
+                    foreignKeyName: item_vector_item_fk
+                    referencedTableName: items
+                    referencesColumnNames: id
+              - column:
+                  name: vector
+                  type: bytea
+                  constraints:
+                    notNull: true

@@ -4,7 +4,7 @@ plugins {
 	id 'java'
 }
 
-group = 'ua.kovalev'
+//group = 'ua.kovalev'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
@@ -19,14 +19,36 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.apache.kafka:kafka-streams'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.0'
+
 	implementation 'org.liquibase:liquibase-core'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '2.4.5'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// logging
+	compile 'ch.qos.logback:logback-core:1.2.3'
+	compile 'ch.qos.logback:logback-classic:1.2.3'
+
+
+	compile project(":recommendation-api")
+	compile project(":recommendation-model")
+	compile project(":recommendation-algorithm")
 }
 
 test {

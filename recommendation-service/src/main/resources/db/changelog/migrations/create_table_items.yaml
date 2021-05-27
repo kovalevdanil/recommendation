@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: dkovalev
+      changes:
+        - createTable:
+            tableName: items
+            columns:
+              - column:
+                  name: model_id
+                  type: int
+                  constraints:
+                    unique: true
+                    notNull: true
+              - column:
+                  name: outer_id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: items_pkey
